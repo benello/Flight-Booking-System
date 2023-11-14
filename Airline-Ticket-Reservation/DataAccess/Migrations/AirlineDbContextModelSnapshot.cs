@@ -36,7 +36,7 @@ namespace DataAccess.Migrations
                     b.Property<int>("Columns")
                         .HasColumnType("int");
 
-                    b.Property<double>("CommissionRate")
+                    b.Property<double?>("CommissionRate")
                         .HasColumnType("float");
 
                     b.Property<string>("CountryFrom")
@@ -63,19 +63,46 @@ namespace DataAccess.Migrations
 
             modelBuilder.Entity("Domain.Models.Passport", b =>
                 {
-                    b.Property<string>("UserFk")
+                    b.Property<string>("PassportNumber")
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("PassportNumber")
-                        .HasColumnType("int");
 
                     b.Property<string>("Image")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("UserFk", "PassportNumber");
+                    b.HasKey("PassportNumber");
 
                     b.ToTable("Passport");
+                });
+
+            modelBuilder.Entity("Domain.Models.Seat", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("ColumnNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FlightFk")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RowNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FlightFk");
+
+                    b.HasIndex("RowNumber", "ColumnNumber")
+                        .IsUnique();
+
+                    b.ToTable("Seat");
                 });
 
             modelBuilder.Entity("Domain.Models.Ticket", b =>
@@ -89,25 +116,27 @@ namespace DataAccess.Migrations
                     b.Property<bool>("Cancelled")
                         .HasColumnType("bit");
 
-                    b.Property<int>("Columns")
+                    b.Property<int>("FlightFk")
                         .HasColumnType("int");
 
-                    b.Property<int>("PassportNumber")
-                        .HasColumnType("int");
+                    b.Property<string>("PassportFk")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<double>("PricePaid")
                         .HasColumnType("float");
 
-                    b.Property<int>("Row")
+                    b.Property<int>("SeatFk")
                         .HasColumnType("int");
-
-                    b.Property<string>("UserFk")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserFk", "PassportNumber");
+                    b.HasIndex("FlightFk");
+
+                    b.HasIndex("PassportFk");
+
+                    b.HasIndex("SeatFk")
+                        .IsUnique();
 
                     b.ToTable("Ticket");
                 });
@@ -145,6 +174,9 @@ namespace DataAccess.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<string>("PassportFk")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
 
@@ -173,6 +205,8 @@ namespace DataAccess.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.HasIndex("PassportFk");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -314,24 +348,49 @@ namespace DataAccess.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Models.Passport", b =>
+            modelBuilder.Entity("Domain.Models.Seat", b =>
                 {
-                    b.HasOne("Domain.Models.User", "User")
-                        .WithMany("Passports")
-                        .HasForeignKey("UserFk")
+                    b.HasOne("Domain.Models.Flight", "Flight")
+                        .WithMany("Seats")
+                        .HasForeignKey("FlightFk")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Flight");
                 });
 
             modelBuilder.Entity("Domain.Models.Ticket", b =>
                 {
-                    b.HasOne("Domain.Models.Passport", "Passport")
+                    b.HasOne("Domain.Models.Flight", "Flight")
                         .WithMany()
-                        .HasForeignKey("UserFk", "PassportNumber")
+                        .HasForeignKey("FlightFk")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Domain.Models.Passport", "Passport")
+                        .WithMany()
+                        .HasForeignKey("PassportFk")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Models.Seat", "Seat")
+                        .WithOne()
+                        .HasForeignKey("Domain.Models.Ticket", "SeatFk")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Flight");
+
+                    b.Navigation("Passport");
+
+                    b.Navigation("Seat");
+                });
+
+            modelBuilder.Entity("Domain.Models.User", b =>
+                {
+                    b.HasOne("Domain.Models.Passport", "Passport")
+                        .WithMany()
+                        .HasForeignKey("PassportFk");
 
                     b.Navigation("Passport");
                 });
@@ -387,9 +446,9 @@ namespace DataAccess.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Domain.Models.User", b =>
+            modelBuilder.Entity("Domain.Models.Flight", b =>
                 {
-                    b.Navigation("Passports");
+                    b.Navigation("Seats");
                 });
 #pragma warning restore 612, 618
         }

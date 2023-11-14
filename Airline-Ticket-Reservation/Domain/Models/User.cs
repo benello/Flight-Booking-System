@@ -6,16 +6,14 @@ namespace Domain.Models;
 public class User
     : IdentityUser
 {
-    public User()
-        : base()
-    { }
-    public User(string name)
-        : base(name)
-    {
-    }
+    [ForeignKey(nameof(Passport))]
+    public string? PassportFk { get; set; }
+    public virtual Passport? Passport { get; set; }
     
-    // The InverseProperty attribute is applied to the navigation property in Passport to specify
-    // the corresponding navigation property in Passport (i.e. User property) as the property to inverse from.
-    [InverseProperty(nameof(Passport.User))]
-    public virtual ICollection<Passport>? Passports { get; set; }
+    public User()
+    { }
+    
+    public User(string userName)
+        : base(userName)
+    { }
 }

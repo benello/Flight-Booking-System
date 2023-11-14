@@ -9,16 +9,12 @@ public class Flight
     [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
     
-    [Required]
     public int Rows { get; set; }
     
-    [Required]
     public int Columns { get; set; }
     
-    [Required]
     public DateTime DepartureDate { get; set; }
     
-    [Required]
     public DateTime ArrivalDate { get; set; }
     
     [Required]
@@ -27,10 +23,12 @@ public class Flight
     [Required]
     public string? CountryTo { get; set; }
     
-    [Required]
     [Range(0, double.MaxValue)]
     public double WholeSalePrice { get; set; }
     
     [Range(0, double.MaxValue)]
-    public double CommissionRate { get; set; }
+    public double? CommissionRate { get; set; }
+
+    [ForeignKey(nameof(Seat.FlightFk))] 
+    public virtual ICollection<Seat> Seats { get; set; } = null!;
 }

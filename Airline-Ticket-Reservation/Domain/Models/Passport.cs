@@ -6,13 +6,8 @@ namespace Domain.Models;
 [Table(nameof(Passport))]
 public class Passport
 {
-    // Composite key from userid and passport no. set in DbContext
-    [ForeignKey(nameof(User))]
-    public string? UserFk { get; set; }
-    
-    public int PassportNumber { get; set; }
-    
-    public virtual User? User { get; set; }
+    [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
+    public string? PassportNumber { get; set; }
     
     [Required]
     public string? Image { get; set; }

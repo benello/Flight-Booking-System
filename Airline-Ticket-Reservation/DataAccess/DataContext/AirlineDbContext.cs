@@ -1,5 +1,4 @@
 using Domain.Models;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,16 +20,18 @@ public class AirlineDbContext
     public AirlineDbContext(DbContextOptions<AirlineDbContext> options)
         : base(options)
     { }
-    
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+
+    protected override void OnModelCreating(ModelBuilder builder)
     {
-        base.OnModelCreating(modelBuilder);
-        
-        // Set composite primary key for Passport
-        modelBuilder.Entity<Passport>()
-            .HasKey(passport => new { passport.UserFk, passport.PassportNumber });
+        base.OnModelCreating(builder);
+
+        builder.Entity<Ticket>()
+            .HasOne( ticket => ticket.Seat)
+            .WithOne()
+            .HasForeignKey<Ticket>(ticket => ticket.SeatFk)
+            .OnDelete(DeleteBehavior.NoAction);
     }
-    
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         base.OnConfiguring(optionsBuilder);

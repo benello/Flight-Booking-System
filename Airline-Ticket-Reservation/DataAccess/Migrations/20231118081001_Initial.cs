@@ -24,31 +24,6 @@ namespace DataAccess.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetUsers",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    EmailConfirmed = table.Column<bool>(type: "bit", nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(type: "bit", nullable: false),
-                    TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    LockoutEnabled = table.Column<bool>(type: "bit", nullable: false),
-                    AccessFailedCount = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Flight",
                 columns: table => new
                 {
@@ -61,11 +36,23 @@ namespace DataAccess.Migrations
                     CountryFrom = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CountryTo = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     WholeSalePrice = table.Column<double>(type: "float", nullable: false),
-                    CommissionRate = table.Column<double>(type: "float", nullable: false)
+                    CommissionRate = table.Column<double>(type: "float", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Flight", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Passport",
+                columns: table => new
+                {
+                    PassportNumber = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Image = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Passport", x => x.PassportNumber);
                 });
 
             migrationBuilder.CreateTable(
@@ -87,6 +74,93 @@ namespace DataAccess.Migrations
                         principalTable: "AspNetRoles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Seat",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FlightFk = table.Column<int>(type: "int", nullable: false),
+                    RowNumber = table.Column<int>(type: "int", nullable: false),
+                    ColumnNumber = table.Column<int>(type: "int", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Seat", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Seat_Flight_FlightFk",
+                        column: x => x.FlightFk,
+                        principalTable: "Flight",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUsers",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    PassportFk = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "bit", nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "bit", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetUsers_Passport_PassportFk",
+                        column: x => x.PassportFk,
+                        principalTable: "Passport",
+                        principalColumn: "PassportNumber");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Ticket",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PricePaid = table.Column<double>(type: "float", nullable: false),
+                    Cancelled = table.Column<bool>(type: "bit", nullable: false),
+                    PassportFk = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    FlightFk = table.Column<int>(type: "int", nullable: false),
+                    SeatFk = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Ticket", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Ticket_Flight_FlightFk",
+                        column: x => x.FlightFk,
+                        principalTable: "Flight",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Ticket_Passport_PassportFk",
+                        column: x => x.PassportFk,
+                        principalTable: "Passport",
+                        principalColumn: "PassportNumber",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Ticket_Seat_SeatFk",
+                        column: x => x.SeatFk,
+                        principalTable: "Seat",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -174,49 +248,6 @@ namespace DataAccess.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "Passport",
-                columns: table => new
-                {
-                    UserFk = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    PassportNumber = table.Column<int>(type: "int", nullable: false),
-                    Image = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Passport", x => new { x.UserFk, x.PassportNumber });
-                    table.ForeignKey(
-                        name: "FK_Passport_AspNetUsers_UserFk",
-                        column: x => x.UserFk,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Ticket",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Row = table.Column<int>(type: "int", nullable: false),
-                    Columns = table.Column<int>(type: "int", nullable: false),
-                    UserFk = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    PassportNumber = table.Column<int>(type: "int", nullable: false),
-                    PricePaid = table.Column<double>(type: "float", nullable: false),
-                    Cancelled = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Ticket", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Ticket_Passport_UserFk_PassportNumber",
-                        columns: x => new { x.UserFk, x.PassportNumber },
-                        principalTable: "Passport",
-                        principalColumns: new[] { "UserFk", "PassportNumber" },
-                        onDelete: ReferentialAction.Cascade);
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -250,6 +281,11 @@ namespace DataAccess.Migrations
                 column: "NormalizedEmail");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_PassportFk",
+                table: "AspNetUsers",
+                column: "PassportFk");
+
+            migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
@@ -257,9 +293,31 @@ namespace DataAccess.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Ticket_UserFk_PassportNumber",
+                name: "IX_Seat_FlightFk",
+                table: "Seat",
+                column: "FlightFk");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Seat_RowNumber_ColumnNumber",
+                table: "Seat",
+                columns: new[] { "RowNumber", "ColumnNumber" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Ticket_FlightFk",
                 table: "Ticket",
-                columns: new[] { "UserFk", "PassportNumber" });
+                column: "FlightFk");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Ticket_PassportFk",
+                table: "Ticket",
+                column: "PassportFk");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Ticket_SeatFk",
+                table: "Ticket",
+                column: "SeatFk",
+                unique: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -280,19 +338,22 @@ namespace DataAccess.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Flight");
-
-            migrationBuilder.DropTable(
                 name: "Ticket");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
+                name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "Seat");
+
+            migrationBuilder.DropTable(
                 name: "Passport");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "Flight");
         }
     }
 }
