@@ -14,6 +14,8 @@ public class AirlineDbContext
     public DbSet<Ticket> Tickets { get; set; } = null!;
 
     public DbSet<Passport> Passports { get; set; } = null!;
+    
+    public DbSet<Seat> Seats { get; set; } = null!;
 
     public override DbSet<User> Users { get; set; } = null!;
 
