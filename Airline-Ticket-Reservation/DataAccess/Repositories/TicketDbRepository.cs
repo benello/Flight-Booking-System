@@ -1,30 +1,40 @@
+using DataAccess.Contracts;
 using DataAccess.DataContext;
-using Domain.Contracts;
+using Domain.Models;
 
 namespace DataAccess.Repositories;
 
 public class TicketDbRepository
     : ITickets
 {
-    private AirlineDbContext airlineDbContext;
+    private readonly AirlineDbContext airlineDbContext;
     
     public TicketDbRepository(AirlineDbContext airlineDbContext)
     {
         this.airlineDbContext = airlineDbContext;
     }
     
-    public void Book()
+    public bool Book(Ticket newTicket)
     {
-        throw new NotImplementedException();
+        airlineDbContext.Tickets.Add(newTicket);
+        return airlineDbContext.SaveChanges() > 0;
     }
 
-    public void Cancel()
+    public bool Cancel(int id)
     {
-        throw new NotImplementedException();
+        var ticket = GetTicket(id);
+        
+        if (ticket == null)
+        {
+            return false;
+        }
+
+        ticket.Cancelled = true;
+        return airlineDbContext.SaveChanges() > 0;
     }
 
-    public void GetTicket()
+    public Ticket? GetTicket(int id)
     {
-        throw new NotImplementedException();
+        return airlineDbContext.Tickets.Find(id);
     }
 }

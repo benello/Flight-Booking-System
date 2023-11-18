@@ -1,25 +1,26 @@
+using DataAccess.Contracts;
 using DataAccess.DataContext;
-using Domain.Contracts;
+using Domain.Models;
 
 namespace DataAccess.Repositories;
 
 public class FlightDbRepository
     : IFlights
 {
-    private AirlineDbContext airlineDbContext;
+    private readonly AirlineDbContext airlineDbContext;
     
     public FlightDbRepository(AirlineDbContext airlineDbContext)
     {
         this.airlineDbContext = airlineDbContext;
     }
-    
-    public void GetFlight()
-    {
-        throw new NotImplementedException();
-    }
 
-    public void GetFlights()
+    public IQueryable<Flight> GetFlights()
     {
-        throw new NotImplementedException();
+        return airlineDbContext.Flights;
+    }
+    
+    public Flight? GetFlight(int id)
+    {
+        return airlineDbContext.Flights.Find(id);
     }
 }

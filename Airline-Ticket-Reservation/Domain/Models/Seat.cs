@@ -12,7 +12,6 @@ public class Seat
     [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
     
-    [Required]
     [ForeignKey(nameof(Flight))]
     public int FlightFk { get; set; }
     public virtual Flight Flight { get; set; } = null!;
@@ -22,4 +21,7 @@ public class Seat
     public int ColumnNumber { get; set; }
     
     public SeatType Type { get; set; }
+    
+    // Setup in DbContext
+    public virtual Ticket? Ticket { get; set; }
 }

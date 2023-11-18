@@ -1,15 +1,21 @@
 ﻿using Airline_Ticket_Reservation.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using DataAccess.Contracts;
+using Domain.Models;
 
 namespace Airline_Ticket_Reservation.Controllers
 {
     public class HomeController : Controller
     {
+        private ITickets ticketRepo;
+        private IFlights flightRepo;
         private readonly ILogger<HomeController> _logger;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ITickets ticketRepo, IFlights flightRepo, ILogger<HomeController> logger)
         {
+            this.ticketRepo = ticketRepo;
+            this.flightRepo = flightRepo;
             _logger = logger;
         }
 

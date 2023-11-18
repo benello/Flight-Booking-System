@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(AirlineDbContext))]
-    [Migration("20231118081001_Initial")]
+    [Migration("20231118145306_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -69,7 +69,6 @@ namespace DataAccess.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Image")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("PassportNumber");
@@ -122,7 +121,6 @@ namespace DataAccess.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("PassportFk")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<double>("PricePaid")
@@ -371,12 +369,10 @@ namespace DataAccess.Migrations
 
                     b.HasOne("Domain.Models.Passport", "Passport")
                         .WithMany()
-                        .HasForeignKey("PassportFk")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PassportFk");
 
                     b.HasOne("Domain.Models.Seat", "Seat")
-                        .WithOne()
+                        .WithOne("Ticket")
                         .HasForeignKey("Domain.Models.Ticket", "SeatFk")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
@@ -451,6 +447,11 @@ namespace DataAccess.Migrations
             modelBuilder.Entity("Domain.Models.Flight", b =>
                 {
                     b.Navigation("Seats");
+                });
+
+            modelBuilder.Entity("Domain.Models.Seat", b =>
+                {
+                    b.Navigation("Ticket");
                 });
 #pragma warning restore 612, 618
         }
