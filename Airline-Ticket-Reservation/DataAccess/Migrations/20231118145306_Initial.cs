@@ -48,7 +48,7 @@ namespace DataAccess.Migrations
                 columns: table => new
                 {
                     PassportNumber = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Image = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Image = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -137,7 +137,7 @@ namespace DataAccess.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     PricePaid = table.Column<double>(type: "float", nullable: false),
                     Cancelled = table.Column<bool>(type: "bit", nullable: false),
-                    PassportFk = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    PassportFk = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     FlightFk = table.Column<int>(type: "int", nullable: false),
                     SeatFk = table.Column<int>(type: "int", nullable: false)
                 },
@@ -154,8 +154,7 @@ namespace DataAccess.Migrations
                         name: "FK_Ticket_Passport_PassportFk",
                         column: x => x.PassportFk,
                         principalTable: "Passport",
-                        principalColumn: "PassportNumber",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "PassportNumber");
                     table.ForeignKey(
                         name: "FK_Ticket_Seat_SeatFk",
                         column: x => x.SeatFk,

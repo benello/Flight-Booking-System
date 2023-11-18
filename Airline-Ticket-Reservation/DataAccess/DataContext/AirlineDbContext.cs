@@ -9,13 +9,13 @@ namespace DataAccess.DataContext;
 public class AirlineDbContext
     : IdentityDbContext<User>
 {
-    public DbSet<Flight> Flights { get; set; }
-    
-    public DbSet<Ticket> Tickets { get; set; }
-    
-    public DbSet<Passport> Passports { get; set; }
-    
-    public override DbSet<User> Users { get; set; }
+    public DbSet<Flight> Flights { get; set; } = null!;
+
+    public DbSet<Ticket> Tickets { get; set; } = null!;
+
+    public DbSet<Passport> Passports { get; set; } = null!;
+
+    public override DbSet<User> Users { get; set; } = null!;
 
     public AirlineDbContext(DbContextOptions<AirlineDbContext> options)
         : base(options)
@@ -27,7 +27,7 @@ public class AirlineDbContext
 
         builder.Entity<Ticket>()
             .HasOne( ticket => ticket.Seat)
-            .WithOne()
+            .WithOne(seat => seat.Ticket)
             .HasForeignKey<Ticket>(ticket => ticket.SeatFk)
             .OnDelete(DeleteBehavior.NoAction);
     }

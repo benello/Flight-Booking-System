@@ -1,4 +1,6 @@
+using DataAccess.Contracts;
 using DataAccess.DataContext;
+using DataAccess.Repositories;
 using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +15,9 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<AirlineDbContext>();
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddScoped<ITickets, TicketDbRepository>();
+builder.Services.AddScoped<IFlights, FlightDbRepository>();
 
 var app = builder.Build();
 

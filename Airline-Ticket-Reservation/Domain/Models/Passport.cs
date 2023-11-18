@@ -9,6 +9,5 @@ public class Passport
     [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
     public string? PassportNumber { get; set; }
     
-    [Required]
     public string? Image { get; set; }
 }
