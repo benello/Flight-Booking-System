@@ -14,6 +14,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AirlineDbContext>(options =>
 {
     options.UseSqlServer(connectionString);
+    options.UseTriggers(triggerOptions =>
+        triggerOptions.AddTrigger<CreateSeatsAfterFlightAdded>());
 });
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
