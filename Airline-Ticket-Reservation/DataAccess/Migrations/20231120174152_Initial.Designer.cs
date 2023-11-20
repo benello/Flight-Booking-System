@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(AirlineDbContext))]
-    [Migration("20231118145306_Initial")]
+    [Migration("20231120174152_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -46,7 +46,6 @@ namespace DataAccess.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CountryTo")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("DepartureDate")
@@ -98,9 +97,7 @@ namespace DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FlightFk");
-
-                    b.HasIndex("RowNumber", "ColumnNumber")
+                    b.HasIndex("FlightFk", "RowNumber", "ColumnNumber")
                         .IsUnique();
 
                     b.ToTable("Seat");
@@ -121,12 +118,13 @@ namespace DataAccess.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("PassportFk")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<double>("PricePaid")
                         .HasColumnType("float");
 
-                    b.Property<int>("SeatFk")
+                    b.Property<int?>("SeatFk")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -136,7 +134,8 @@ namespace DataAccess.Migrations
                     b.HasIndex("PassportFk");
 
                     b.HasIndex("SeatFk")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[SeatFk] IS NOT NULL");
 
                     b.ToTable("Ticket");
                 });
@@ -369,13 +368,14 @@ namespace DataAccess.Migrations
 
                     b.HasOne("Domain.Models.Passport", "Passport")
                         .WithMany()
-                        .HasForeignKey("PassportFk");
+                        .HasForeignKey("PassportFk")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Domain.Models.Seat", "Seat")
                         .WithOne("Ticket")
                         .HasForeignKey("Domain.Models.Ticket", "SeatFk")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Flight");
 

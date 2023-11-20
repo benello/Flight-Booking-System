@@ -1,10 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Domain.Contracts;
 
 namespace Domain.Models;
 
 [Table(nameof(Ticket))]
 public class Ticket
+    : IDbModel
 {
     [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
@@ -15,14 +17,15 @@ public class Ticket
     public bool Cancelled { get; set; }
     
     [ForeignKey(nameof(Passport))]
-    public string? PassportFk { get; set; }
+    public string? PassportNumber { get; set; }
     public virtual Passport? Passport { get; set; }
     
     [ForeignKey(nameof(Flight))]
-    public int FlightFk { get; set; }
-    public virtual Flight? Flight { get; set; }
+    public int FlightId { get; set; }
+
+    public virtual Flight Flight { get; set; } = null!;
     
     // Foreign key is set in DbContext
-    public int SeatFk { get; set; }
-    public virtual Seat Seat { get; set; } = null!;
+    public int? SeatId { get; set; }
+    public virtual Seat? Seat { get; set; }
 }

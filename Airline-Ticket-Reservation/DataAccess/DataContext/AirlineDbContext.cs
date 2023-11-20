@@ -30,7 +30,7 @@ public class AirlineDbContext
         builder.Entity<Ticket>()
             .HasOne( ticket => ticket.Seat)
             .WithOne(seat => seat.Ticket)
-            .HasForeignKey<Ticket>(ticket => ticket.SeatFk)
+            .HasForeignKey<Ticket>(ticket => ticket.SeatId)
             .OnDelete(DeleteBehavior.NoAction);
     }
 
