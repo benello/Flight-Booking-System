@@ -14,8 +14,6 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AirlineDbContext>(options =>
 {
     options.UseSqlServer(connectionString);
-    options.UseTriggers(triggerOptions =>
-        triggerOptions.AddTrigger<CreateSeatsAfterFlightAdded>());
 });
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -26,6 +24,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IRepository<Ticket>, TicketDbRepository>();
 builder.Services.AddScoped<IRepository<Flight>, FlightDbRepository>();
 builder.Services.AddScoped<IRepository<Seat>, SeatDbRepository>();
+builder.Services.AddScoped<IFlightService, FlightService>();
 
 var app = builder.Build();
 
