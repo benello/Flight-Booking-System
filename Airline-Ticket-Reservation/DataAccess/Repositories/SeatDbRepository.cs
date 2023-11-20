@@ -5,7 +5,7 @@ using Domain.Models;
 namespace DataAccess.Repositories;
 
 public class SeatDbRepository
-    : ISeats
+    : IRepository<Seat>
 {
     private readonly AirlineDbContext dbContext;
     
@@ -13,21 +13,32 @@ public class SeatDbRepository
     {
         this.dbContext = dbContext;
     }
-    
-    public bool AddSeat(Seat seat)
-    {
-        dbContext.Seats.Add(seat);
 
+    public bool Add(Seat entity)
+    {
+        dbContext.Seats.Add(entity);
         return dbContext.SaveChanges() > 0;
     }
 
-    public Seat? GetSeat(int id)
+    public bool Update(Seat entity)
+    {
+        dbContext.Seats.Update(entity);
+        return dbContext.SaveChanges() > 0;
+    }
+
+    public bool Delete(Seat entity)
+    {
+        dbContext.Seats.Remove(entity);
+        return dbContext.SaveChanges() > 0;
+    }
+
+    public Seat? Get(int id)
     {
         return dbContext.Seats.Find(id);
     }
 
-    public IQueryable<Seat> GetFlightSeats(int flightId)
+    public IQueryable<Seat> GetAll()
     {
-        return dbContext.Seats.Where(seat => seat.FlightFk == flightId);
+        return dbContext.Seats;
     }
 }

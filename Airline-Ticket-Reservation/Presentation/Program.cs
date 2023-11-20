@@ -1,6 +1,9 @@
+using Application.Contracts;
+using Application.Services;
 using DataAccess.Contracts;
 using DataAccess.DataContext;
 using DataAccess.Repositories;
+using DataAccess.Triggers;
 using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,15 +12,20 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AirlineDbContext>(options =>
-    options.UseSqlServer(connectionString));
+{
+    options.UseSqlServer(connectionString);
+    options.UseTriggers(triggerOptions =>
+        triggerOptions.AddTrigger<CreateSeatsAfterFlightAdded>());
+});
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<AirlineDbContext>();
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddScoped<ITickets, TicketDbRepository>();
-builder.Services.AddScoped<IFlights, FlightDbRepository>();
+builder.Services.AddScoped<IRepository<Ticket>, TicketDbRepository>();
+builder.Services.AddScoped<IRepository<Flight>, FlightDbRepository>();
+builder.Services.AddScoped<IRepository<Seat>, SeatDbRepository>();
 
 var app = builder.Build();
 

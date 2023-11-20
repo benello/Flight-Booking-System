@@ -5,36 +5,40 @@ using Domain.Models;
 namespace DataAccess.Repositories;
 
 public class TicketDbRepository
-    : ITickets
+    : IRepository<Ticket>
 {
-    private readonly AirlineDbContext airlineDbContext;
+    private readonly AirlineDbContext dbContext;
     
-    public TicketDbRepository(AirlineDbContext airlineDbContext)
+    public TicketDbRepository(AirlineDbContext dbContext)
     {
-        this.airlineDbContext = airlineDbContext;
+        this.dbContext = dbContext;
     }
     
-    public bool Book(Ticket newTicket)
+    public bool Add(Ticket entity)
     {
-        airlineDbContext.Tickets.Add(newTicket);
-        return airlineDbContext.SaveChanges() > 0;
+        dbContext.Tickets.Add(entity);
+        return dbContext.SaveChanges() > 0;
     }
 
-    public bool Cancel(int id)
+    public bool Update(Ticket entity)
     {
-        var ticket = GetTicket(id);
-        
-        if (ticket == null)
-        {
-            return false;
-        }
-
-        ticket.Cancelled = true;
-        return airlineDbContext.SaveChanges() > 0;
+        dbContext.Tickets.Update(entity);
+        return dbContext.SaveChanges() > 0;
     }
 
-    public Ticket? GetTicket(int id)
+    public bool Delete(Ticket entity)
     {
-        return airlineDbContext.Tickets.Find(id);
+        dbContext.Tickets.Remove(entity);
+        return dbContext.SaveChanges() > 0;
+    }
+
+    public Ticket? Get(int id)
+    {
+        return dbContext.Tickets.Find(id);
+    }
+
+    public IQueryable<Ticket> GetAll()
+    {
+        return dbContext.Tickets;
     }
 }

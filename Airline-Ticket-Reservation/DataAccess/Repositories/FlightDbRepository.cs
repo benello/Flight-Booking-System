@@ -5,22 +5,40 @@ using Domain.Models;
 namespace DataAccess.Repositories;
 
 public class FlightDbRepository
-    : IFlights
+    : IRepository<Flight>
 {
-    private readonly AirlineDbContext airlineDbContext;
+    private readonly AirlineDbContext dbContext;
     
-    public FlightDbRepository(AirlineDbContext airlineDbContext)
+    public FlightDbRepository(AirlineDbContext dbContext)
     {
-        this.airlineDbContext = airlineDbContext;
+        this.dbContext = dbContext;
     }
 
-    public IQueryable<Flight> GetFlights()
+    public bool Add(Flight entity)
     {
-        return airlineDbContext.Flights;
+        dbContext.Flights.Add(entity);
+        return dbContext.SaveChanges() > 0;
     }
-    
-    public Flight? GetFlight(int id)
+
+    public bool Update(Flight entity)
     {
-        return airlineDbContext.Flights.Find(id);
+        dbContext.Flights.Update(entity);
+        return dbContext.SaveChanges() > 0;
+    }
+
+    public bool Delete(Flight entity)
+    {
+        dbContext.Flights.Remove(entity);
+        return dbContext.SaveChanges() > 0;
+    }
+
+    public Flight? Get(int id)
+    {
+        return dbContext.Flights.Find(id);
+    }
+
+    public IQueryable<Flight> GetAll()
+    {
+        return dbContext.Flights;
     }
 }
