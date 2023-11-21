@@ -1,0 +1,20 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+      # Workflow files stored in the default location of `.github/workflows`. (You don't need to specify `/.github/workflows` for `directory`. You can use `directory: "/"`.)
+    directory: "/"
+    schedule:
+      # Check for updates to GitHub Actions every weekday
+      interval: "daily"
+        
+  - package-ecosystem: "nuget"
+    directory: "/Airline-Ticket-Reservation/" # Root of solution specified to recursively search in all projects
+    schedule:
+      interval: "weekly"
+    #Groups aspnetcore dependencies together
+    groups: 
+      aspnet-dependencies:
+        patterns:
+          - "Microsoft.AspNetCore.*"
+          - "Micrososft.EntityFrameworkCore.*"
+          - "Microsoft.VisualStudio.Web.CodeGeneration.Design"
