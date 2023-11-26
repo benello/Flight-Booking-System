@@ -1,3 +1,4 @@
+@using Airline_Ticket_Reservation.Controllers
 @model IEnumerable<Application.ViewModels.ListFlightViewModel>
 
 @{
@@ -6,9 +7,6 @@
 
 <h1>Index</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
 <table class="table">
     <thead>
         <tr>
@@ -55,7 +53,7 @@
                 @Html.DisplayFor(modelItem => item.AvailableSeats)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
+                @Html.ActionLink("Book", nameof(FlightsController.Book), "Flights", new {  flightId=item.Id }) |
                 @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
                 @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
             </td>

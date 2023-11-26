@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+using Application.Contracts;
 using Domain.Models;
 
 namespace Application.ViewModels;
@@ -14,14 +14,14 @@ public class ListFlightViewModel
 
     public string CountryFrom { get; set; } = null!;
 
-    public string? CountryTo { get; set; } = null!;
+    public string CountryTo { get; set; } = null!;
     
     public int AvailableSeats { get; set; }
 }
 
 public static class ListFlightViewModelExtensions
 {
-    public static ListFlightViewModel ToListFlightViewModel(this Flight flight)
+    public static ListFlightViewModel ToListFlightViewModel(this Flight flight, ISeatService? flightService = null)
     {
         return new ListFlightViewModel
         {
@@ -30,7 +30,7 @@ public static class ListFlightViewModelExtensions
             ArrivalDate = flight.ArrivalDate,
             CountryFrom = flight.CountryFrom,
             CountryTo = flight.CountryTo,
-            AvailableSeats = flight.Seats.Count(s => s.IsAvailable)
+            AvailableSeats = flightService?.GetAvailableSeatsCount(flight.Id) ?? 0,
         };
     }
 }

@@ -1,0 +1,63 @@
+@model Application.ViewModels.CreateTicketViewModel
+
+@{
+    ViewData["Title"] = "Book";
+}
+
+<h1>Book</h1>
+
+<h4>CreateTicketViewModel</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Book" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="SeatId"></label>
+                <select asp-for="SeatId" class="form-select">
+                    <option value="select a seat">Select a seat</option>
+                    @foreach (var seat in Model.AvailableSeats!)
+                    {
+                        if (seat.Id == Model.SeatId)
+                        {
+                            <option selected value="@seat.Id">R{@seat.RowNumber} C{@seat.ColumnNumber}</option>
+                        }
+                        else
+                        {
+                            <option value="@seat.Id">R @seat.RowNumber C @seat.ColumnNumber</option>
+                        }
+                    }
+                </select>
+                <span asp-validation-for="SeatId" class="text-danger"></span>
+
+            </div>
+            <div class="form-group">
+                <label asp-for="PassportNumber" class="control-label"></label>
+                <input asp-for="PassportNumber" class="form-control" />
+                <span asp-validation-for="PassportNumber" class="text-danger"></span>
+            </div>
+             <div class="form-group mb-3">
+                <label asp-for="PassportImage" class="control-label"></label>
+                <input asp-for="PassportImage" type="file" class="form-control">
+                <span asp-validation-for="PassportImage" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PriceToPay" class="control-label"></label>
+                <input asp-for="PriceToPay" class="form-control" readonly/>
+                <span asp-validation-for="PriceToPay" class="text-danger"></span>
+            </div>
+            <div class="form-group mt-2">
+                <input type="submit" value="Book now!" class="btn btn-primary" />
+            </div>
+            
+            <!-- Hidden and readonly inputs -->
+            <input asp-for="FlightId" value="@Model.FlightId" class="form-control" readonly/>
+            
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+

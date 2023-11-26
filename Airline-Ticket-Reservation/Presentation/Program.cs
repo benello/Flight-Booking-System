@@ -27,7 +27,12 @@ builder.Services.AddScoped<IRepository<Ticket>, TicketDbRepository>();
 builder.Services.AddScoped<IRepository<Flight>, FlightDbRepository>();
 builder.Services.AddScoped<IRepository<Seat>, SeatDbRepository>();
 builder.Services.AddScoped<IRepository<Passport>, PassportDbRepository>();
-builder.Services.AddScoped<IFlightService, FlightService>();
+builder.Services.AddScoped<ITicketService, AirlineService>();
+builder.Services.AddScoped<ISeatService, AirlineService>();
+builder.Services.AddScoped<IFlightService, AirlineService>();
+builder.Services.AddScoped<IAirlineService, AirlineService>();
+builder.Services.AddScoped<IPassportService, PassportService>();
+builder.Services.AddSingleton<FileService>();
 
 var app = builder.Build();
 

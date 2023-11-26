@@ -5,12 +5,8 @@ namespace Application.Contracts;
 public interface IFlightService
 {
     void AddFlight(Flight flight);
-    bool IsFlightFull(int flightId);
-    bool IsSeatAvailable(int seatId);
+    bool FlightExists(int flightId);
     Flight? GetFlight(int flightId);
     IEnumerable<Flight> GetAllFlights();
     IEnumerable<Flight> GetAvailableFlights();
-    void BookTicket(Ticket ticket);
-    void CancelTicket(int ticketId);
-    IEnumerable<Ticket> GetTickets(string passportNumber);
 }

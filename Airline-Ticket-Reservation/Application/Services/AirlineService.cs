@@ -6,14 +6,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
-public class FlightService
-    : IFlightService
+public class AirlineService
+    : IAirlineService
 {
     private readonly IRepository<Flight> flightRepo;
     private readonly IRepository<Seat> seatRepo;
     private readonly IRepository<Ticket> ticketRepo;
 
-    public FlightService(IRepository<Flight> flightRepo, IRepository<Seat> seatRepo, IRepository<Ticket> ticketRepo)
+    public AirlineService(IRepository<Flight> flightRepo, IRepository<Seat> seatRepo, IRepository<Ticket> ticketRepo)
     {
         this.flightRepo = flightRepo;
         this.seatRepo = seatRepo;
@@ -51,21 +51,14 @@ public class FlightService
         }
     }
     
-    public bool IsFlightFull(int flightId)
+    public bool FlightExists(int flightId)
     {
-        var flightSeats = seatRepo.GetAll().Where(seat => seat.FlightId == flightId) ?? throw new ArgumentException("Flight does not exist.", nameof(flightId));
-        return flightSeats.Any(seat => IsSeatAvailable(seat.Id));
-    }
-
-    public bool IsSeatAvailable(int seatId)
-    {
-        var seat = seatRepo.Get(seatId) ?? throw new ArgumentException("Seat does not exist.", nameof(seatId));
-        return seat.IsAvailable;
+        return flightRepo.GetAll().Any(flight => flight.Id == flightId);
     }
 
     public Flight? GetFlight(int flightId)
     {
-        throw new NotImplementedException();
+        return flightRepo.Get(flightId);
     }
 
     public IEnumerable<Flight> GetAllFlights()
@@ -78,9 +71,47 @@ public class FlightService
         // IsFlightFull() is not used here because the query would have to be executed with only half of the filers since
         // ef core cannot translate the IsFlightFull() method to sql and therefore would have to load partially filtered flights into memory
          return flightRepo.GetAll()
-            .Where(flight => flight.DepartureDate > DateTime.UtcNow && flight.Seats.Any(seat => seat.Ticket == null));    
+            .Where(flight => flight.DepartureDate > DateTime.UtcNow 
+                && flight.Tickets.Count(ticket => !ticket.Cancelled) < flight.Rows * flight.Columns);    
+    }
+    
+     public IEnumerable<Seat> GetAvailableSeats(int flightId)
+    {
+        var allFlightSeats = seatRepo.GetAll()
+            .Where(seat => seat.FlightId == flightId);
+            
+        var takenSeats = ticketRepo.GetAll()
+            .Where(ticket => ticket.FlightId == flightId && ticket.SeatId.HasValue)
+            .Select(ticket => ticket.Seat!);
+
+        return allFlightSeats.Except(takenSeats);
+    }
+    
+    public int GetAvailableSeatsCount(int flightId)
+    {
+        return GetAvailableSeats(flightId)
+            .AsQueryable()
+            .Count();
     }
 
+    public bool IsSeatAvailable(int seatId)
+    {
+        if (!SeatExists(seatId))
+            throw new ArgumentException("Seat does not exist.");
+        
+        return !ticketRepo.GetAll().Any(ticket => ticket.SeatId == seatId);
+    }
+    
+    public bool SeatExists(int seatId)
+    {
+        return seatRepo.GetAll().Any(seat => seat.Id == seatId);
+    }
+    
+    public bool SeatBelongsToFlight(int seatId, int flightId)
+    {
+        return seatRepo.GetAll().Any(seat => seat.Id == seatId && seat.FlightId == flightId);
+    }
+    
     public void BookTicket(Ticket ticket)
     {  
         if (ticket.SeatId.HasValue && !IsSeatAvailable(ticket.SeatId.Value))

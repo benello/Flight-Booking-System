@@ -6,6 +6,7 @@ using Domain.Contracts;
 namespace Domain.Models;
 
 [Table(nameof(Flight))]
+[SuppressMessage("ReSharper", "ClassWithVirtualMembersNeverInherited.Global")]
 public class Flight
     : IDbModel
 {
@@ -33,11 +34,15 @@ public class Flight
     // When a foreign key attribute is set on a navigation property, it informs Entity Framework that this property should
     // be mapped to a foreign key column in the class type model. (In this case, the FlightFk column in the Seat table)
     [ForeignKey(nameof(Seat.FlightId))] 
-    public virtual ICollection<Seat> Seats { get; set; } = null!;
+    public virtual ICollection<Seat> Seats { get; set; }
+    
+    [ForeignKey(nameof(Ticket.FlightId))]
+    public virtual ICollection<Ticket> Tickets { get; set; }
 
     [SuppressMessage("ReSharper", "VirtualMemberCallInConstructor")]
     public Flight()
     {
         Seats = new HashSet<Seat>();
+        Tickets = new HashSet<Ticket>();
     }
 }
