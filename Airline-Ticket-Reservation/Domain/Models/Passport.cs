@@ -9,7 +9,7 @@ public class Passport
     : IDbModel
 {
     [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
-    public string? PassportNumber { get; set; }
+    public string PassportNumber { get; set; } = null!;
     
     public string? Image { get; set; }
 }

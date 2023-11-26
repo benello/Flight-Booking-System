@@ -15,9 +15,9 @@ public class Ticket
     public double PricePaid { get; set; }
     
     public bool Cancelled { get; set; }
-    
-    [ForeignKey(nameof(Passport))]
-    public string? PassportNumber { get; set; }
+
+    [ForeignKey(nameof(Passport))] 
+    public string PassportNumber { get; set; } = null!;
     public virtual Passport? Passport { get; set; }
     
     [ForeignKey(nameof(Flight))]
