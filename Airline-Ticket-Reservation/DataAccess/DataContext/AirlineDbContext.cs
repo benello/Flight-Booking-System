@@ -14,6 +14,8 @@ public class AirlineDbContext
     public DbSet<Ticket> Tickets { get; set; } = null!;
 
     public DbSet<Passport> Passports { get; set; } = null!;
+    
+    public DbSet<Seat> Seats { get; set; } = null!;
 
     public override DbSet<User> Users { get; set; } = null!;
 
@@ -28,7 +30,7 @@ public class AirlineDbContext
         builder.Entity<Ticket>()
             .HasOne( ticket => ticket.Seat)
             .WithOne(seat => seat.Ticket)
-            .HasForeignKey<Ticket>(ticket => ticket.SeatFk)
+            .HasForeignKey<Ticket>(ticket => ticket.SeatId)
             .OnDelete(DeleteBehavior.NoAction);
     }
 

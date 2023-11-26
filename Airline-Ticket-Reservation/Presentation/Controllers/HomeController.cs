@@ -8,14 +8,10 @@ namespace Airline_Ticket_Reservation.Controllers
 {
     public class HomeController : Controller
     {
-        private ITickets ticketRepo;
-        private IFlights flightRepo;
         private readonly ILogger<HomeController> _logger;
 
-        public HomeController(ITickets ticketRepo, IFlights flightRepo, ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger)
         {
-            this.ticketRepo = ticketRepo;
-            this.flightRepo = flightRepo;
             _logger = logger;
         }
 

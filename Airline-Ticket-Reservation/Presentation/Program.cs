@@ -1,6 +1,9 @@
+using Application.Contracts;
+using Application.Services;
 using DataAccess.Contracts;
 using DataAccess.DataContext;
 using DataAccess.Repositories;
+using DataAccess.Triggers;
 using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,15 +23,28 @@ else
 }
 
 builder.Services.AddDbContext<AirlineDbContext>(options =>
-    options.UseSqlServer(connection));
+{
+    options.UseSqlServer(connection);
+    options.UseTriggers(triggerOptions =>
+        triggerOptions.AddTrigger<CreateSeatsAfterFlightAdded>());
+});
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<AirlineDbContext>();
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddScoped<ITickets, TicketDbRepository>();
-builder.Services.AddScoped<IFlights, FlightDbRepository>();
+builder.Services.AddScoped<IRepository<Ticket>, TicketDbRepository>();
+builder.Services.AddScoped<IRepository<Flight>, FlightDbRepository>();
+builder.Services.AddScoped<IRepository<Seat>, SeatDbRepository>();
+builder.Services.AddScoped<IRepository<Passport>, PassportDbRepository>();
+builder.Services.AddScoped<ITicketService, AirlineService>();
+builder.Services.AddScoped<ISeatService, AirlineService>();
+builder.Services.AddScoped<IFlightService, AirlineService>();
+builder.Services.AddScoped<IAirlineService, AirlineService>();
+builder.Services.AddScoped<IPassportService, PassportService>();
+builder.Services.AddSingleton<FileService>();
 
 var app = builder.Build();
 
