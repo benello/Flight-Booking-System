@@ -7,9 +7,20 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+string connection;
+if (builder.Environment.IsDevelopment())
+{
+    connection = builder.Configuration.GetConnectionString("DefaultConnection");
+}
+else
+{
+    // An environment variable is set in the Azure App Service that contains the connection string
+    connection = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTIONSTRING") 
+                 ?? throw new InvalidOperationException("Missing connection string for Azure SQL");
+}
+
 builder.Services.AddDbContext<AirlineDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlServer(connection));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true)

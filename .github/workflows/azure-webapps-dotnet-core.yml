@@ -21,12 +21,12 @@ name: Build and deploy ASP.Net Core app to an Azure Web App
 
 defaults:
   run:
-    working-directory: ./Airline-Ticket-Reservation
+    working-directory: ./Airline-Ticket-Reservation # Needed to be in solution directory
 
 env:
   AZURE_WEBAPP_NAME: Airline-Ticket-Reservation   # set this to the name of your Azure Web App
   AZURE_WEBAPP_PACKAGE_PATH: '.'      # set this to the path to your web app project, defaults to the repository root
-  DOTNET_VERSION: '7.0.400'                 # set this to the .NET Core version to use
+  DOTNET_VERSION: '6.0.x'                 # set this to the .NET Core version to use
 
 on:
   push:
@@ -37,7 +37,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  build-and-migrate:
     runs-on: ubuntu-latest
 
     steps:
@@ -59,6 +59,16 @@ jobs:
       - name: Build with dotnet
         run: dotnet build --configuration Release
 
+      - name: Run Database Migrations
+        run: |
+          dotnet tool install --global dotnet-ef --version 6.0.25
+          dotnet tool restore
+          dotnet ef migrations add --project DataAccess/DataAccess.csproj --startup-project Presentation/Presentation.csproj --context DataAccess.DataContext.AirlineDbContext --configuration Release --framework net6.0 DeplymentMigration --output-dir Migrations
+          dotnet ef database update --project DataAccess/DataAccess.csproj --startup-project Presentation/Presentation.csproj --context DataAccess.DataContext.AirlineDbContext --configuration Release --framework net6.0 DeplymentMigration --connection '${{ secrets.AZURE_SQL_CONNECTIONSTRING }}'
+
+        env:
+          AZURE_SQL_CONNECTIONSTRING: ${{ secrets.AZURE_SQL_CONNECTIONSTRING }}
+
       - name: dotnet publish
         run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
@@ -72,7 +82,7 @@ jobs:
     permissions:
       contents: none
     runs-on: ubuntu-latest
-    needs: build
+    needs: build-and-migrate
     environment:
       name: 'Development'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
