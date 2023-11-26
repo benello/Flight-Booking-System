@@ -39,7 +39,13 @@ public class FlightsController
             if (flight == null)
                 throw new Exception("Flight does not exist.");
             
-            var newTicket = flight.ToCreateTicketViewModel(airlineService);
+            var availableSeats = airlineService.GetAvailableSeats(flight.Id).ToArray();
+
+            // Check if flight is full in memory since the seats are still needed for the view
+            if (!availableSeats.Any())
+                throw new Exception("Flight is full.");
+            
+            var newTicket = flight.ToCreateTicketViewModel(availableSeats);
             
             return View(newTicket);
         }
@@ -91,5 +97,29 @@ public class FlightsController
         }
         
         return RedirectToAction(nameof(Index));
+    }
+    
+    public IActionResult Cancel(int ticketId)
+    {
+        try
+        {
+            airlineService.CancelTicket(ticketId);
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = ex.Message;
+        }
+        
+        return RedirectToAction(nameof(Index));
+    }
+    
+    
+    public IActionResult Tickets(string passportNumber, int page = 1, int pageSize = 10)
+    {
+        var tickets = airlineService.GetTickets(passportNumber)
+            .Paginate(page, pageSize)
+            .Select(ticket => ticket.ToListTicketViewModel()).ToList();
+        
+        return View(tickets);
     }
 }

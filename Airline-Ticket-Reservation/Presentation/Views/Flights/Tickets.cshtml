@@ -1,0 +1,61 @@
+@using Domain.Enums
+@model List<Application.ViewModels.ListTicketViewModel>
+
+@{
+    ViewData["Title"] = "Tickets";
+    var cnt = 0;
+}
+
+<h1>Tickets</h1>
+<div class="container mt-4">
+    @if (User.Identity?.IsAuthenticated == false)
+    {
+        <h2 class="align-content-center">You must be logged in to view your tickets</h2>
+        return;
+    }
+    @while (cnt < Model.Count)
+    {
+        <div class="row">
+            @for (int i = 0; i < 2 && cnt < Model.Count; i++)
+            {
+                var currentTicket = Model[cnt];
+                <article class="card fl-left @(currentTicket.Cancelled ? "cancelled" : "") ">
+                    <section class="date">
+                        <time datetime="@currentTicket.DepartureDate">
+                            <span>@currentTicket.DepartureDate.Day</span><span>@currentTicket.DepartureDate.ToString("MMM")</span>
+                        </time>
+                    </section>
+                    <section class="card-cont">
+                        <small>Ticket #@currentTicket.Id</small>
+                        <h3>Destination @currentTicket.CountryTo</h3>
+                        <div class="even-date">
+                            <i class="fa fa-calendar"></i>
+                            <time>
+                                <span>@currentTicket.DepartureDate</span>
+                                <span>@currentTicket.ArrivalDate</span>
+                            </time>
+                        </div>
+                        <div class="even-info">
+                            <i class="fa fa-map-marker"></i>
+                            @if (!currentTicket.Cancelled)
+                            {
+                                <p>
+                                    @Enum.GetName(typeof(SeatType), currentTicket.SeatType!.Value)
+                                </p>
+                            }
+                        </div>
+                        @if (!currentTicket.Cancelled)
+                        {
+                            <button class="btn btn-danger" href="\Flights\Cancel?ticketId=@currentTicket.Id" onclick='return window.confirm("Are you sure?")'>Cancel</button>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger span-md">Cancelled</span>
+                        }
+                    </section>
+                </article>
+                cnt++;
+            }
+        </div>
+    }
+</div>

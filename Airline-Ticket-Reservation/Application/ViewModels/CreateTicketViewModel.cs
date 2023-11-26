@@ -32,13 +32,8 @@ public class CreateTicketViewModel
 
 public static class BookTicketViewModelExtensions
 {
-    public static CreateTicketViewModel ToCreateTicketViewModel(this Flight flight, ISeatService service)
+    public static CreateTicketViewModel ToCreateTicketViewModel(this Flight flight, IEnumerable<Seat> availableSeats)
     {
-        var availableSeats = service.GetAvailableSeats(flight.Id).ToArray();
-
-        // Check if flight is full in memory since the seats are still needed for the view
-        if (!availableSeats.Any())
-            throw new Exception("Flight is full.");
         
         return new CreateTicketViewModel
         {
