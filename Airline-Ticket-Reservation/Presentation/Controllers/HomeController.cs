@@ -1,8 +1,6 @@
 ﻿using Airline_Ticket_Reservation.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
-using DataAccess.Contracts;
-using Domain.Models;
 
 namespace Airline_Ticket_Reservation.Controllers
 {

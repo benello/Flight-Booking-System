@@ -158,13 +158,11 @@ h1 {
   display: block
 }
 
-.card-cont button  {
+.card-cont a {
   display: block;
   text-decoration: none;
-  width: 80px;
   height: 20%;
   text-align: center;
-  line-height: 20%;
   border-radius: 5px;
   position: absolute;
   right: 10px;
@@ -189,4 +187,5 @@ h1 {
 
 .span-md {
   font-size: 1em;
+  margin-bottom: 20px;
 }
