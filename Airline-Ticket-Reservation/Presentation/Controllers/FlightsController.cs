@@ -1,6 +1,6 @@
 using Application.Contracts;
 using Application.Enums;
-using Application.Extensions;
+using Application.Pagination;
 using Application.Services;
 using Application.ViewModels;
 using Domain.Models;
@@ -32,11 +32,12 @@ public class FlightsController
     public IActionResult Index(int page = 1, int pageSize = 10)
     {
         var availableFlights = airlineService.GetAvailableFlights()
-            .Paginate(page, pageSize)
-            .ToList()   // execute query so that the following select which also executes a query does not have MultipleActiveResultSets
-            .Select(flight => flight.ToListFlightViewModel(airlineService));
+                .ToList()   // Force query execution so that the following select which also executes a query does not have MultipleActiveResultSets
+                .Select(flight => flight.ToListFlightViewModel(airlineService));
         
-        return View(availableFlights);
+        var paginatedFlights = availableFlights.ToPaginationInfo(page, pageSize);
+        
+        return View(paginatedFlights);
     }
 
     public IActionResult Book(int flightId)
@@ -130,11 +131,12 @@ public class FlightsController
         }
 
         var passportNumber = userManager.GetUserAsync(User).Result.PassportNumber ?? string.Empty;
-        var tickets = airlineService.GetTickets(passportNumber)
-            .Paginate(page, pageSize)
-            .ToList()   // execute query so that the following select which also executes a query does not have MultipleActiveResultSets
-            .Select(ticket => ticket.ToListTicketViewModel()).ToList();
+        var userTickets = airlineService.GetTickets(passportNumber)
+            .ToList()   // Force query execution so that the following select which also executes a query does not have MultipleActiveResultSets
+            .Select(ticket => ticket.ToListTicketViewModel());
         
-        return View(tickets);
+        var paginatedTickets = userTickets.ToPaginationInfo(page, pageSize);
+        
+        return View(paginatedTickets);
     }
 }

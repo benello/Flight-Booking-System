@@ -189,3 +189,11 @@ h1 {
   font-size: 1em;
   margin-bottom: 20px;
 }
+
+.footer {
+  text-align: center;
+  padding: 10px 0;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}
