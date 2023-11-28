@@ -33,6 +33,7 @@ public class FlightsController
     {
         var availableFlights = airlineService.GetAvailableFlights()
             .Paginate(page, pageSize)
+            .ToList()   // execute query so that the following select which also executes a query does not have MultipleActiveResultSets
             .Select(flight => flight.ToListFlightViewModel(airlineService));
         
         return View(availableFlights);
@@ -131,6 +132,7 @@ public class FlightsController
         var passportNumber = userManager.GetUserAsync(User).Result.PassportNumber ?? string.Empty;
         var tickets = airlineService.GetTickets(passportNumber)
             .Paginate(page, pageSize)
+            .ToList()   // execute query so that the following select which also executes a query does not have MultipleActiveResultSets
             .Select(ticket => ticket.ToListTicketViewModel()).ToList();
         
         return View(tickets);
