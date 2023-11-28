@@ -18,8 +18,7 @@ if (builder.Environment.IsDevelopment())
 else
 {
     // An environment variable is set in the Azure App Service that contains the connection string
-    connection = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTIONSTRING") 
-                 ?? throw new InvalidOperationException("Missing connection string for Azure SQL");
+    connection = builder.Configuration.GetConnectionString("SQLAZURECONNSTR_DefaultConnection");
 }
 
 builder.Services.AddDbContext<AirlineDbContext>(options =>

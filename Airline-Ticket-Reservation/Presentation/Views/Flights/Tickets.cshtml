@@ -1,4 +1,5 @@
 @using Domain.Enums
+@using Microsoft.AspNetCore.Identity
 @model List<Application.ViewModels.ListTicketViewModel>
 
 @{
@@ -8,11 +9,6 @@
 
 <h1>Tickets</h1>
 <div class="container mt-4">
-    @if (User.Identity?.IsAuthenticated == false)
-    {
-        <h2 class="align-content-center">You must be logged in to view your tickets</h2>
-        return;
-    }
     @while (cnt < Model.Count)
     {
         <div class="row">
@@ -46,7 +42,7 @@
                         </div>
                         @if (!currentTicket.Cancelled)
                         {
-                            <button class="btn btn-danger" href="\Flights\Cancel?ticketId=@currentTicket.Id" onclick='return window.confirm("Are you sure?")'>Cancel</button>
+                            <a class="btn btn-danger" href="\Flights\Cancel?ticketId=@currentTicket.Id" onclick='return window.confirm("Are you sure?")'>Cancel</a>
                         }
                         else
                         {

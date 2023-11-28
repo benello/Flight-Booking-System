@@ -4,6 +4,7 @@ using Application.Extensions;
 using Application.Services;
 using Application.ViewModels;
 using Domain.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
@@ -14,11 +15,17 @@ public class FlightsController
 {
     private readonly IAirlineService airlineService;
     private readonly IPassportService passportService;
+    private readonly UserManager<User> userManager;
+    private readonly SignInManager<User> signInManager;
+
     
-    public FlightsController(IAirlineService airlineService, IPassportService passportService)
+    public FlightsController(IAirlineService airlineService, IPassportService passportService,
+        UserManager<User> userManager, SignInManager<User> signInManager)
     {
         this.airlineService = airlineService;
         this.passportService = passportService;
+        this.userManager = userManager;
+        this.signInManager = signInManager;
     }
     
     // GET
@@ -26,6 +33,7 @@ public class FlightsController
     {
         var availableFlights = airlineService.GetAvailableFlights()
             .Paginate(page, pageSize)
+            .ToList()   // execute query so that the following select which also executes a query does not have MultipleActiveResultSets
             .Select(flight => flight.ToListFlightViewModel(airlineService));
         
         return View(availableFlights);
@@ -109,15 +117,22 @@ public class FlightsController
         {
             TempData["Error"] = ex.Message;
         }
-        
-        return RedirectToAction(nameof(Index));
+
+        return RedirectToAction(nameof(Tickets), new {passportNumber = userManager.GetUserAsync(User).Result.PassportNumber});
     }
     
     
-    public IActionResult Tickets(string passportNumber, int page = 1, int pageSize = 10)
+    public IActionResult Tickets(int page = 1, int pageSize = 10)
     {
+        if (!signInManager.IsSignedIn(User))
+        {
+            return RedirectToAction(nameof(Index));
+        }
+
+        var passportNumber = userManager.GetUserAsync(User).Result.PassportNumber ?? string.Empty;
         var tickets = airlineService.GetTickets(passportNumber)
             .Paginate(page, pageSize)
+            .ToList()   // execute query so that the following select which also executes a query does not have MultipleActiveResultSets
             .Select(ticket => ticket.ToListTicketViewModel()).ToList();
         
         return View(tickets);
