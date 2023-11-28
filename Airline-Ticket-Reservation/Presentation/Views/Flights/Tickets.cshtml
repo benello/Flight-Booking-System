@@ -1,20 +1,24 @@
 @using Domain.Enums
-@using Microsoft.AspNetCore.Identity
-@model List<Application.ViewModels.ListTicketViewModel>
+@using Application.ViewModels
+@using System.Collections.Immutable
+@using Airline_Ticket_Reservation.Controllers
+@model Application.Pagination.PaginationInfoWithItems<ListTicketViewModel>
 
 @{
     ViewData["Title"] = "Tickets";
+    ViewData["View"] = nameof(FlightsController.Tickets);
     var cnt = 0;
+    var tickets = Model.Items.ToImmutableArray();
 }
 
 <h1>Tickets</h1>
 <div class="container mt-4">
-    @while (cnt < Model.Count)
+    @while (cnt < tickets.Length)
     {
         <div class="row">
-            @for (int i = 0; i < 2 && cnt < Model.Count; i++)
+            @for (int i = 0; i < 2 && cnt < tickets.Length; i++)
             {
-                var currentTicket = Model[cnt];
+                var currentTicket = tickets[cnt];
                 <article class="card fl-left @(currentTicket.Cancelled ? "cancelled" : "") ">
                     <section class="date">
                         <time datetime="@currentTicket.DepartureDate">
@@ -55,3 +59,5 @@
         </div>
     }
 </div>
+
+<partial name="_PageNavigationPartial" model="Model" view-data="ViewData"/>
