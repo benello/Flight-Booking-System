@@ -17,7 +17,6 @@ public class FlightsController
     private readonly IPassportService passportService;
     private readonly UserManager<User> userManager;
     private readonly SignInManager<User> signInManager;
-
     
     public FlightsController(IAirlineService airlineService, IPassportService passportService,
         UserManager<User> userManager, SignInManager<User> signInManager)
@@ -32,10 +31,10 @@ public class FlightsController
     public IActionResult Index(int page = 1, int pageSize = 10)
     {
         var availableFlights = airlineService.GetAvailableFlights()
-                .ToList()   // Force query execution so that the following select which also executes a query does not have MultipleActiveResultSets
-                .Select(flight => flight.ToListFlightViewModel(airlineService));
-        
-        var paginatedFlights = availableFlights.ToPaginationInfo(page, pageSize);
+            .AsQueryable()
+            .ToListFlightViewModels();
+
+        var paginatedFlights = availableFlights.ToPaginationInfo(pageSize, page);
         
         return View(paginatedFlights);
     }
@@ -131,11 +130,12 @@ public class FlightsController
         }
 
         var passportNumber = userManager.GetUserAsync(User).Result.PassportNumber ?? string.Empty;
+
         var userTickets = airlineService.GetTickets(passportNumber)
-            .ToList()   // Force query execution so that the following select which also executes a query does not have MultipleActiveResultSets
-            .Select(ticket => ticket.ToListTicketViewModel());
-        
-        var paginatedTickets = userTickets.ToPaginationInfo(page, pageSize);
+            .AsQueryable()
+            .ToListTicketViewModels();
+
+        var paginatedTickets = userTickets.ToPaginationInfo(pageSize, page);
         
         return View(paginatedTickets);
     }

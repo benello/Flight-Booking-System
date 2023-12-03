@@ -24,18 +24,19 @@ public class ListTicketViewModel
 
 public static class ListTicketViewModelExtensions
 {
-    public static ListTicketViewModel ToListTicketViewModel(this Ticket ticket)
+    public static IQueryable<ListTicketViewModel> ToListTicketViewModels(this IQueryable<Ticket> ticketsQueryable)
     {
-        return new ListTicketViewModel
-        {
-            Id = ticket.Id,
-            PricePaid = ticket.PricePaid,
-            Cancelled = ticket.Cancelled,
-            DepartureDate = ticket.Flight.DepartureDate,
-            ArrivalDate = ticket.Flight.ArrivalDate,
-            CountryFrom = ticket.Flight.CountryFrom,
-            CountryTo = ticket.Flight.CountryTo,
-            SeatType = ticket.Seat?.Type
-        };
+        return from ticket in ticketsQueryable
+            select new ListTicketViewModel
+            {
+                Id = ticket.Id,
+                Cancelled = ticket.Cancelled,
+                PricePaid = ticket.PricePaid,
+                DepartureDate = ticket.Flight.DepartureDate,
+                ArrivalDate = ticket.Flight.ArrivalDate,
+                CountryFrom = ticket.Flight.CountryFrom,
+                CountryTo = ticket.Flight.CountryTo,
+                SeatType = ticket.Seat == null ? null : ticket.Seat.Type,
+            };
     }
 }
