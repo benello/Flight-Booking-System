@@ -8,7 +8,7 @@
     ViewData["Title"] = "Tickets";
     ViewData["View"] = nameof(FlightsController.Tickets);
     var cnt = 0;
-    var tickets = Model.Items.ToImmutableArray();
+    var tickets = Model.PageItems.ToImmutableArray();
 }
 
 <h1>Tickets</h1>

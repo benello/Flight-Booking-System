@@ -68,8 +68,6 @@ public class AirlineService
 
     public IEnumerable<Flight> GetAvailableFlights()
     {
-        // IsFlightFull() is not used here because the query would have to be executed with only half of the filers since
-        // ef core cannot translate the IsFlightFull() method to sql and therefore would have to load partially filtered flights into memory
          return flightRepo.GetAll()
             .Where(flight => flight.DepartureDate > DateTime.UtcNow 
                 && flight.Tickets.Count(ticket => !ticket.Cancelled) < flight.Rows * flight.Columns);    

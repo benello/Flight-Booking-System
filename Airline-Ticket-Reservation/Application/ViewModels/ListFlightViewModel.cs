@@ -1,4 +1,3 @@
-using Application.Contracts;
 using Domain.Models;
 
 namespace Application.ViewModels;
@@ -21,16 +20,18 @@ public class ListFlightViewModel
 
 public static class ListFlightViewModelExtensions
 {
-    public static ListFlightViewModel ToListFlightViewModel(this Flight flight, ISeatService? flightService = null)
+    public static IQueryable<ListFlightViewModel> ToListFlightViewModels(this IQueryable<Flight> flightsQueryable)
     {
-        return new ListFlightViewModel
-        {
-            Id = flight.Id,
-            DepartureDate = flight.DepartureDate,
-            ArrivalDate = flight.ArrivalDate,
-            CountryFrom = flight.CountryFrom,
-            CountryTo = flight.CountryTo,
-            AvailableSeats = flightService?.GetAvailableSeatsCount(flight.Id) ?? 0,
-        };
+        return (from flight in flightsQueryable
+            select new ListFlightViewModel
+            {
+                Id = flight.Id,
+                DepartureDate = flight.DepartureDate,
+                ArrivalDate = flight.ArrivalDate,
+                CountryFrom = flight.CountryFrom,
+                CountryTo = flight.CountryTo,
+                // There might be a better way to do this but it does the job
+                AvailableSeats = flight.Seats.Count() - flight.Tickets.Count(ticket => !ticket.Cancelled),
+            }); 
     }
 }

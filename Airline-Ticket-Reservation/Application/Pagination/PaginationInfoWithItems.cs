@@ -6,52 +6,64 @@ namespace Application.Pagination;
 public class PaginationInfoWithItems<T>
     : IPaginationInfo where T : class
 {
-    public int Page { get; set; }
+    public int CurrentPage { get; set; }
     public int PageSize { get; set; }
-    public int TotalPages { get; set; }
-    
-    public IEnumerable<T> Items { get; set; }
-    
-    public PaginationInfoWithItems(int page, int pageSize, int totalPages, IEnumerable<T> items)
+    public int TotalPages => (int) Math.Ceiling(totalItems / (double) PageSize);
+
+    private readonly IQueryable<T> itemsQueryable;
+    private readonly int totalItems;
+
+    public IEnumerable<T> PageItems
     {
-        Page = page;
+        get
+        {
+            var itemsOffset = (CurrentPage - 1) * PageSize;
+            
+            return itemsQueryable
+                .Skip(itemsOffset)
+                .Take(PageSize)
+                .ToArray();
+        }
+    }
+    
+    public PaginationInfoWithItems(int pageSize, IQueryable<T> itemsQueryable, int currentPage = 1)
+    {
+        totalItems = itemsQueryable.Count();
+        CurrentPage = currentPage;
         PageSize = pageSize;
-        TotalPages = totalPages;
-        Items = items;
+        this.itemsQueryable = itemsQueryable;
+    }
+    
+    public int NextPage()
+    {
+        if (CurrentPage >= TotalPages)
+            return CurrentPage;
+        
+        return ++CurrentPage;
+    }
+
+    public int PreviousPage()
+    {
+        if (CurrentPage <= 1)
+            return CurrentPage;
+
+        return --CurrentPage;
+    }
+
+    public void GoToPage(int page)
+    {
+        if (page < 1 || page > TotalPages)
+            return;
+
+        CurrentPage = page;
     }
 }
 
 public static class PaginationExtensions
 {
-    public static PaginationInfoWithItems<T> ToPaginationInfo<T>(this IEnumerable<T> items, int page, int pageSize)
+    public static PaginationInfoWithItems<T> ToPaginationInfo<T>(this IQueryable<T> itemsQueryable, int pageSize, int page = 1)
         where T : class
     {
-        int totalPages;
-        int totalItems;
-        IEnumerable<T> paginatedItems;
-        page = page > 0 ? page : 1;
-                
-        if (items is IQueryable<T> queryableItems)
-        {
-            totalItems = queryableItems.Count();
-            totalPages = (int) Math.Ceiling(totalItems / (double) pageSize);
-            var itemsToSkip = (int) Math.Min((page - 1) * pageSize, (uint) (totalItems - pageSize));
-            paginatedItems = queryableItems
-                                .Skip(itemsToSkip)
-                                .Take(pageSize);
-        }
-        else
-        {
-            var arrayItems = items.ToArray();
-            totalItems = arrayItems.Length;
-            totalPages = (int) Math.Ceiling(totalItems / (double) pageSize);
-            var pagesToSkip = (int) Math.Min((page - 1) * pageSize, (uint)(totalItems - pageSize));
-            
-            paginatedItems = arrayItems
-                                .Skip(pagesToSkip)
-                                .Take(pageSize);
-        }
-
-        return new PaginationInfoWithItems<T>(page, pageSize, totalPages, paginatedItems);
+        return new PaginationInfoWithItems<T>(pageSize, itemsQueryable, page);
     }
 }
