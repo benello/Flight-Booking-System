@@ -154,6 +154,11 @@ public class AirlineService
         return ticketRepo.GetAll().Where(ticket => ticket.FlightId == flightId);
     }
 
+    public IEnumerable<Ticket> GetAllTickets()
+    {
+        return ticketRepo.GetAll();
+    }
+    
     public IEnumerable<Ticket> GetUserTickets(string passportNumber)
     {
         return ticketRepo.GetAll().Where(ticket => ticket.PassportNumber == passportNumber);

@@ -10,8 +10,10 @@
     var cnt = 0;
     var tickets = Model.PageItems.ToImmutableArray();
 }
-
-<link rel="stylesheet" href="~/css/ticket.css"/>
+@section Styles
+{
+    <link rel="stylesheet" href="~/css/ticket.css"/>
+}
 
 <h1>Tickets</h1>
 <div class="container mt-4">

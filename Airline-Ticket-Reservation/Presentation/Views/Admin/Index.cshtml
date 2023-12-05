@@ -1,13 +1,47 @@
 @using Airline_Ticket_Reservation.Controllers
+@using Application.ViewModels
+@model AdminStatisticsViewModel
 @{
     ViewData["Title"] = "Index";
 }
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/material-design-iconic-font/2.2.0/css/material-design-iconic-font.min.css" integrity="sha256-3sPp8BkKUE7QyPSl6VfBByBroQbKxKG7tsusY2mhbVY=" crossorigin="anonymous" />
-<link rel="stylesheet" href="css/flight.css"/>
 
+@section Styles
+{
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true">
+    <link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+}
 
+<h1>Admin Access</h1>
 
-<h1>Index</h1>
-@Html.ActionLink("Show Flights", nameof(AdminController.Flights), "Admin") |
-@Html.ActionLink("Show Tickets", nameof(FlightsController.Tickets), "Flights") |
-@Html.ActionLink("Add Flight", nameof(AdminController.AddFlight), "Admin") |
+<div class="container bootstrap snippet">
+    <div class="row justify-content-center">
+        @foreach (var prop in Model.GetType().GetProperties())
+        {
+            <div class="col-lg-2 col-sm-6">
+                <div class="circle-tile ">
+                    <div class="circle-tile-content dark-blue">
+                        <div class="circle-tile-description text-faded">
+                            @Html.DisplayName(prop.Name)
+                        </div>
+                        <div class="circle-tile-number text-faded ">@prop.GetValue(Model)</div>
+                        <div class="circle-tile-footer"><i class="fa fa-chevron-circle-right"></i></div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    
+    <hr/>
+    <div class="row circle-tile">
+        <div class="col circle-tile-footer ms-3">
+            @Html.ActionLink("Show Flights", nameof(AdminController.Flights), "Admin")
+        </div>
+        <div class="col circle-tile-footer ms-3">
+            @Html.ActionLink("Show Tickets", nameof(FlightsController.Tickets), "Flights")
+        </div>
+        <div class="col circle-tile-footer ms-3">
+            @Html.ActionLink("Add Flight", nameof(AdminController.AddFlight), "Admin")
+        </div>
+        
+    </div>
+</div>

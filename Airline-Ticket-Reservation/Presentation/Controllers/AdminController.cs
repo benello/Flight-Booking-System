@@ -20,7 +20,19 @@ public class AdminController : Controller
     // GET
     public IActionResult Index()
     {
-        return View();
+        var flightsQuery = airlineService.GetAllFlights().AsQueryable();
+        var ticketsQuery = airlineService.GetAllTickets().AsQueryable();
+        var statistics = new AdminStatisticsViewModel()
+        {
+            TotalFlights = flightsQuery.Count(),
+            TotalFlightsThisMonth = flightsQuery.Count(flight => flight.DepartureDate.Month == DateTime.UtcNow.Month),
+            TotalPassengers = ticketsQuery.Count(ticket => !ticket.Cancelled),
+            TotalTickets = ticketsQuery.Count(),
+            TotalRevenue = ticketsQuery.Where(ticket => !ticket.Cancelled)
+                .Sum(ticket => ticket.PricePaid),
+        };
+        
+        return View(statistics);
     }
     
     public IActionResult AddFlight()
