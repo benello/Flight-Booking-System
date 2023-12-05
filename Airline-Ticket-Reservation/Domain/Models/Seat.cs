@@ -26,8 +26,4 @@ public class Seat
     
     // Setup in DbContext
     public virtual Ticket? Ticket { get; set; }
-    
-    // This property is only used for operations, not stored in the database
-    [NotMapped]
-    public bool IsAvailable => Ticket?.Cancelled ?? true;
 }

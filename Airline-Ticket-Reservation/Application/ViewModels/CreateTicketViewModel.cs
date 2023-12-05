@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Application.Contracts;
 using Application.Validators;
 using Domain.Models;
 using Microsoft.AspNetCore.Http;
@@ -9,7 +8,8 @@ namespace Application.ViewModels;
 
 public class CreateTicketViewModel
 {
-    public IEnumerable<Seat>? AvailableSeats { get; set; }
+    public IEnumerable<Seat>? AllSeats { get; set; }
+    public HashSet<int>? AvailableSeats { get; set; }
 
     [Required(AllowEmptyStrings = false, ErrorMessage = "Passport cannot be left blank")]
     public string PassportNumber { get; set; } = null!;
@@ -34,12 +34,12 @@ public static class BookTicketViewModelExtensions
 {
     public static CreateTicketViewModel ToCreateTicketViewModel(this Flight flight, IEnumerable<Seat> availableSeats)
     {
-        
         return new CreateTicketViewModel
         {
             FlightId = flight.Id,
-            AvailableSeats = availableSeats,
-            PriceToPay =  (flight.CommissionRate ?? 0) * flight.WholeSalePrice + flight.WholeSalePrice,
+            AllSeats = flight.Seats,
+            AvailableSeats = availableSeats.Select(seat => seat.Id).ToHashSet(),
+            PriceToPay =  Math.Round((flight.CommissionRate ?? 0) * flight.WholeSalePrice + flight.WholeSalePrice, 2),
         };
     }
     

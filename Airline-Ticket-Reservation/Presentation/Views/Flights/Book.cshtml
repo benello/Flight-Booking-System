@@ -4,34 +4,73 @@
     ViewData["Title"] = "Book";
 }
 
-<h1>Book</h1>
+<head>
+  <link rel="stylesheet" href="~/css/Book.css"/>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</head>
 
-<h4>CreateTicketViewModel</h4>
+<h1>Book</h1>
 <hr />
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Choose a seat</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="plane">
+          <div class="cockpit">
+            <h1>Seating Chart</h1>
+          </div>
+          <div class="exit fuselage">
+            
+          </div>
+            <div class="fuselage container" id="seatContainer">
+                @foreach (var rowSeats in Model.AllSeats!.GroupBy(seat => seat.RowNumber))
+                {
+                    <div class="row justify-content-evenly align-content-around pe-3">
+                        @foreach (var seat in rowSeats)
+                        {
+                            <div class="col-2">
+                                <span class="seat material-icons md-48 @(!Model.AvailableSeats!.Contains(seat.Id) ? "booked" : "available")"
+                                      data-seat-name=@($"R{seat.RowNumber}-C{seat.ColumnNumber}") data-seat-id=@seat.Id>event_seat</span>
+                            </div>
+                        }
+                    </div>
+                    }
+            </div>
+          <div class="exit fuselage">
+            
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Book" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="SeatId"></label>
-                <select asp-for="SeatId" class="form-select">
-                    <option value="select a seat">Select a seat</option>
-                    @foreach (var seat in Model.AvailableSeats!)
-                    {
-                        if (seat.Id == Model.SeatId)
-                        {
-                            <option selected value="@seat.Id">R{@seat.RowNumber} C{@seat.ColumnNumber}</option>
-                        }
-                        else
-                        {
-                            <option value="@seat.Id">R @seat.RowNumber C @seat.ColumnNumber</option>
-                        }
-                    }
-                </select>
+            <div class="form-group mb-3">
+                <label asp-for="SeatId" class="form-label"></label>
+                <input type="button" data-toggle="modal" data-target="#exampleModalCenter" class="form-control" id="seatName" name="seatId" value="Select a seat">
+                <input asp-for="SeatId" id="seatId" hidden readonly/>
                 <span asp-validation-for="SeatId" class="text-danger"></span>
-
             </div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label asp-for="PassportNumber" class="control-label"></label>
                 <input asp-for="PassportNumber" class="form-control" />
                 <span asp-validation-for="PassportNumber" class="text-danger"></span>
@@ -41,7 +80,7 @@
                 <input asp-for="PassportImage" type="file" class="form-control">
                 <span asp-validation-for="PassportImage" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group mb-4">
                 <label asp-for="PriceToPay" class="control-label"></label>
                 <input asp-for="PriceToPay" class="form-control" readonly/>
                 <span asp-validation-for="PriceToPay" class="text-danger"></span>

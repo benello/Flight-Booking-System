@@ -55,7 +55,14 @@ public class AirlineService
     {
         return flightRepo.GetAll().Any(flight => flight.Id == flightId);
     }
-
+    
+    public bool FlightFull(int flightId)
+    {
+        return !GetAvailableSeats(flightId)
+            .AsQueryable()
+            .Any();
+    }
+    
     public Flight? GetFlight(int flightId)
     {
         return flightRepo.Get(flightId);
@@ -71,6 +78,12 @@ public class AirlineService
          return flightRepo.GetAll()
             .Where(flight => flight.DepartureDate > DateTime.UtcNow 
                 && flight.Tickets.Count(ticket => !ticket.Cancelled) < flight.Rows * flight.Columns);    
+    }
+
+    public IEnumerable<Seat> GetFlightSeats(int flightId)
+    {
+        return seatRepo.GetAll()
+            .Where(seat => seat.FlightId == flightId);
     }
     
      public IEnumerable<Seat> GetAvailableSeats(int flightId)

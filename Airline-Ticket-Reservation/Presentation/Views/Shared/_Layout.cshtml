@@ -49,6 +49,18 @@
                         @TempData["error"]
                     </div>
                 }
+            else if (TempData["success"] != null)
+                {
+                    <div class="alert alert-success" role="alert">
+                        @TempData["success"]
+                    </div>
+                }
+            else if (TempData["info"] != null)
+                {
+                    <div class="alert alert-primary" role="alert">
+                        @TempData["warning"]
+                    </div>
+                }
             @RenderBody()
         </main>
     </div>

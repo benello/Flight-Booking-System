@@ -4,7 +4,6 @@ namespace Application.ViewModels;
 
 public class ListFlightViewModel
 {
-    // TODO: Add properties to display in the view
     public int Id { get; set; }
     
     public DateTime DepartureDate { get; set; }

@@ -1,0 +1,107 @@
+*,*:before,*:after {
+    box-sizing: border-box;
+}
+html {
+    font-size: 16px;
+}
+
+.plane h1 {
+    text-decoration: none;
+    border: none;
+}
+
+.plane {
+    margin: 20px auto;
+    max-width: 350px;
+}
+
+.cockpit {
+    height: 250px;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    border-bottom: 5px solid #484545;
+    &:after {
+        content: "";
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 500px;
+        width: 100%;
+        border-radius: 50%;
+        border-right: 5px solid #484545;
+        border-left: 5px solid #484545;
+        background-color: #84a0cb;
+    }
+    & h1 {
+        width: 60%;
+        margin: 100px auto 35px auto;
+    }
+}
+
+.exit {
+    position: relative;
+    height: 50px;
+    &:before,
+    &:after {
+        content: "EXIT";
+        font-size: 14px;
+        line-height: 18px;
+        padding: 0 2px;
+        font-family: "Arial Narrow", Arial, sans-serif;
+        display: block;
+        position: absolute;
+        background: green;
+        color: white;
+        top: 50%;
+        transform: translate(0, -50%);
+    }
+    &:before {
+        left: 0;
+    }
+    &:after {
+        right: 0;
+    }
+}
+
+.fuselage {
+    border-right: 5px solid #484545;
+    border-left: 5px solid #484545;
+    background-color: #84a0cb;
+    margin-bottom: 0;
+}
+
+.material-icons.md-48 {
+    font-size: 48px;
+}
+
+ol {
+    padding: 0;
+    margin: 0;
+}
+
+.seat {
+    box-sizing: border-box;
+    border: 1px solid transparent;
+    font-size: medium;
+}
+
+.available:hover {
+    cursor: pointer;
+    color: #ff0000;
+    border: 1px solid #ff0000;
+}
+
+.booked {
+    color: #777777;
+}
+
+.booked:hover {
+    cursor: not-allowed;
+}
+
+.selected {
+    color: #5cce21;
+    border: 1px solid #5cce21;
+}

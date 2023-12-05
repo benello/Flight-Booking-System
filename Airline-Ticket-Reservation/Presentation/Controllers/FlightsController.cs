@@ -47,10 +47,10 @@ public class FlightsController
             if (flight == null)
                 throw new Exception("Flight does not exist.");
             
-            var availableSeats = airlineService.GetAvailableSeats(flight.Id).ToArray();
+            var availableSeats = airlineService.GetAvailableSeats(flight.Id).AsEnumerable();
 
-            // Check if flight is full in memory since the seats are still needed for the view
-            if (!availableSeats.Any())
+            // Check if flight is full
+            if (airlineService.FlightFull(flight.Id))
                 throw new Exception("Flight is full.");
             
             var newTicket = flight.ToCreateTicketViewModel(availableSeats);
@@ -72,7 +72,7 @@ public class FlightsController
         {
             if (!ModelState.IsValid)
             {
-                // If flight id is invalid, the flight has departed. Therefore, ticketed cannot be booked
+                // If flight id is invalid, the flight has departed. Therefore, ticket cannot be booked
                 if (ModelState.GetFieldValidationState(nameof(CreateTicketViewModel.FlightId)) == ModelValidationState.Invalid)
                     throw new ArgumentException("Flight does not exist anymore.");
                 
@@ -80,12 +80,17 @@ public class FlightsController
                 if (ModelState.GetFieldValidationState(nameof(CreateTicketViewModel.SeatId)) == ModelValidationState.Invalid)
                     ticketToAdd.SeatId = 0;
                 
-                var availableSeats = airlineService.GetAvailableSeats(ticketToAdd.FlightId).ToArray();
                 // Check if flight is full in memory since the seats are still needed for the view
-                if (!availableSeats.Any())
+                if (airlineService.FlightFull(ticketToAdd.FlightId))
                     throw new ArgumentException("Flight is full.");
 
-                ticketToAdd.AvailableSeats = availableSeats;
+                ticketToAdd.AllSeats = airlineService.GetFlightSeats(ticketToAdd.FlightId);
+                ticketToAdd.AvailableSeats = airlineService.GetAvailableSeats(ticketToAdd.FlightId)
+                    .Select(seat => seat.Id)
+                    .ToHashSet();
+
+                ticketToAdd.PassportNumber = passport.PassportNumber;
+                
                 return View(ticketToAdd);
             }
 
@@ -96,8 +101,8 @@ public class FlightsController
                 passportService.AddPassport(passport);   
             }
             
-            //ticketToAdd.PassportNumber = passport.PassportNumber;
             airlineService.BookTicket(ticketToAdd.ToTicket());
+            TempData["Success"] = "Ticket booked successfully.";
         }
         catch (Exception ex)
         {
@@ -112,6 +117,7 @@ public class FlightsController
         try
         {
             airlineService.CancelTicket(ticketId);
+            TempData["Success"] = "Ticket cancelled successfully.";
         }
         catch (Exception ex)
         {

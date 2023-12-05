@@ -31,4 +31,8 @@
     <Folder Include="wwwroot\Images\Passport\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="wwwroot\css\Book.css" />
+  </ItemGroup>
+
 </Project>
