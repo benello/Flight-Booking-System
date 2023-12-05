@@ -19,6 +19,12 @@ public class TicketDbRepository
         dbContext.Tickets.Add(entity);
         return dbContext.SaveChanges() > 0;
     }
+    
+    public bool AddRange(IEnumerable<Ticket> entities)
+    {
+        dbContext.Tickets.AddRange(entities);
+        return dbContext.SaveChanges() > 0;
+    }
 
     public bool Update(Ticket entity)
     {

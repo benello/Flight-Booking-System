@@ -137,7 +137,7 @@ public class FlightsController
 
         var passportNumber = userManager.GetUserAsync(User).Result.PassportNumber ?? string.Empty;
 
-        var userTickets = airlineService.GetTickets(passportNumber)
+        var userTickets = airlineService.GetUserTickets(passportNumber)
             .AsQueryable()
             .ToListTicketViewModels();
 

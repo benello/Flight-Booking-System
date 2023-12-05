@@ -19,6 +19,12 @@ public class PassportDbRepository
         dbContext.Passports.Add(entity);
         return dbContext.SaveChanges() > 0;
     }
+    
+    public bool AddRange(IEnumerable<Passport> entities)
+    {
+        dbContext.Passports.AddRange(entities);
+        return dbContext.SaveChanges() > 0;
+    }
 
     public bool Update(Passport entity)
     {

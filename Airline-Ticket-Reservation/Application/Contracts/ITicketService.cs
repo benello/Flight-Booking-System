@@ -6,5 +6,6 @@ public interface ITicketService
 {
     void BookTicket(Ticket ticket);
     void CancelTicket(int ticketId);
-    IEnumerable<Ticket> GetTickets(string passportNumber);
+    IEnumerable<Ticket> GetFlightTickets(int flightId);
+    IEnumerable<Ticket> GetUserTickets(string passportNumber);
 }

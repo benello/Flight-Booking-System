@@ -1,4 +1,6 @@
 using Domain.Contracts;
+using Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace DataAccess.Contracts;
 
@@ -10,8 +12,10 @@ public interface IRepository<TEntity>
     where TEntity : IDbModel
 {
     bool Add(TEntity entity);
+    bool AddRange(IEnumerable<TEntity> entities);
     bool Update(TEntity entity);
     bool Delete(TEntity entity);
     TEntity? Get(int id);
     IQueryable<TEntity> GetAll();
+
 }

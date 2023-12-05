@@ -1,0 +1,13 @@
+@using Airline_Ticket_Reservation.Controllers
+@{
+    ViewData["Title"] = "Index";
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/material-design-iconic-font/2.2.0/css/material-design-iconic-font.min.css" integrity="sha256-3sPp8BkKUE7QyPSl6VfBByBroQbKxKG7tsusY2mhbVY=" crossorigin="anonymous" />
+<link rel="stylesheet" href="css/flight.css"/>
+
+
+
+<h1>Index</h1>
+@Html.ActionLink("Show Flights", nameof(AdminController.Flights), "Admin") |
+@Html.ActionLink("Show Tickets", nameof(FlightsController.Tickets), "Flights") |
+@Html.ActionLink("Add Flight", nameof(AdminController.AddFlight), "Admin") |

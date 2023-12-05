@@ -5,6 +5,7 @@ using DataAccess.DataContext;
 using DataAccess.Repositories;
 using DataAccess.Triggers;
 using Domain.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,6 +32,7 @@ builder.Services.AddDbContext<AirlineDbContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AirlineDbContext>();
 builder.Services.AddControllersWithViews();
 
@@ -44,6 +46,7 @@ builder.Services.AddScoped<IFlightService, AirlineService>();
 builder.Services.AddScoped<IAirlineService, AirlineService>();
 builder.Services.AddScoped<IPassportService, PassportService>();
 builder.Services.AddSingleton<FileService>();
+builder.Services.AddScoped<TransactionService>();
 
 var app = builder.Build();
 

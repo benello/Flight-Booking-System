@@ -12,43 +12,28 @@ public class AirlineService
     private readonly IRepository<Flight> flightRepo;
     private readonly IRepository<Seat> seatRepo;
     private readonly IRepository<Ticket> ticketRepo;
+    private readonly TransactionService transactionService;
 
-    public AirlineService(IRepository<Flight> flightRepo, IRepository<Seat> seatRepo, IRepository<Ticket> ticketRepo)
+    public AirlineService(IRepository<Flight> flightRepo, IRepository<Seat> seatRepo, IRepository<Ticket> ticketRepo, TransactionService transactionService)
     {
         this.flightRepo = flightRepo;
         this.seatRepo = seatRepo;
         this.ticketRepo = ticketRepo;
+        this.transactionService = transactionService;
     }
 
     public void AddFlight(Flight flight)
     {
+        using var transaction = transactionService.BeginTransaction();
+        
         var flightAdded = flightRepo.Add(flight);
         if (!flightAdded)
-            throw new DbUpdateException("Flight could not be added.");
-
-        // Add seats of flight
-        for (int row = 1; row <= flight.Rows; row++)
         {
-            for (int column = 1; column <= flight.Columns; column++)
-            {
-                SeatType seatType;
-                if (column == 1 || column == flight.Columns)
-                    seatType = SeatType.Window;
-                else if (column == (flight.Columns / 2) || column == (flight.Columns / 2)+1)
-                    seatType = SeatType.Aisle;
-                else
-                    seatType = SeatType.Middle;
-                
-                var newSeat = new Seat()
-                {
-                    FlightId = flight.Id,
-                    Type = seatType,
-                    RowNumber = row,
-                    ColumnNumber = column,
-                };
-                seatRepo.Add(newSeat);
-            }
+            transaction.Rollback();
+            throw new DbUpdateException("Flight could not be added.");
         }
+        
+        transaction.Commit();
     }
     
     public bool FlightExists(int flightId)
@@ -58,6 +43,8 @@ public class AirlineService
     
     public bool FlightFull(int flightId)
     {
+        using var transaction = transactionService.BeginTransaction();
+        
         return !GetAvailableSeats(flightId)
             .AsQueryable()
             .Any();
@@ -125,27 +112,49 @@ public class AirlineService
     
     public void BookTicket(Ticket ticket)
     {  
+        using var transaction = transactionService.BeginTransaction();
+
         if (ticket.SeatId.HasValue && !IsSeatAvailable(ticket.SeatId.Value))
+        {
+            transaction.Rollback();
             throw new ArgumentException("Seat is not available.", nameof(ticket.SeatId));
+        }
         
         var ticketAdded = ticketRepo.Add(ticket);
         if (!ticketAdded)
+        {
+            transaction.Rollback();
             throw new DbUpdateException("Ticket could not be added.");
+        }
+        
+        transaction.Commit();
     }
 
     public void CancelTicket(int ticketId)
     {
         var ticket = ticketRepo.Get(ticketId) ?? throw new ArgumentException("Ticket does not exist.", nameof(ticketId));
         
+        using var transaction = transactionService.BeginTransaction();
+
         ticket.Cancelled = true;
         ticket.SeatId = null;
         
         var ticketUpdated = ticketRepo.Update(ticket);
         if (!ticketUpdated)
+        {
+            transaction.Rollback();
             throw new DbUpdateException("Ticket could not be updated.");
+        }
+        
+        transaction.Commit();
+    }
+    
+    public IEnumerable<Ticket> GetFlightTickets(int flightId)
+    {
+        return ticketRepo.GetAll().Where(ticket => ticket.FlightId == flightId);
     }
 
-    public IEnumerable<Ticket> GetTickets(string passportNumber)
+    public IEnumerable<Ticket> GetUserTickets(string passportNumber)
     {
         return ticketRepo.GetAll().Where(ticket => ticket.PassportNumber == passportNumber);
     }

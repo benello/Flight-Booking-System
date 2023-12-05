@@ -10,7 +10,7 @@ public class User
     [ForeignKey(nameof(Passport))]
     public string? PassportNumber { get; set; }
     public virtual Passport? Passport { get; set; }
-    
+
     public User()
     { }
     

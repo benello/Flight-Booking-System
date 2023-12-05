@@ -19,6 +19,12 @@ public class SeatDbRepository
         dbContext.Seats.Add(entity);
         return dbContext.SaveChanges() > 0;
     }
+    
+    public bool AddRange(IEnumerable<Seat> entities)
+    {
+        dbContext.Seats.AddRange(entities);
+        return dbContext.SaveChanges() > 0;
+    }
 
     public bool Update(Seat entity)
     {

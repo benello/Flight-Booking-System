@@ -19,6 +19,12 @@ public class FlightDbRepository
         dbContext.Flights.Add(entity);
         return dbContext.SaveChanges() > 0;
     }
+    
+    public bool AddRange(IEnumerable<Flight> entities)
+    {
+        dbContext.Flights.AddRange(entities);
+        return dbContext.SaveChanges() > 0;
+    }
 
     public bool Update(Flight entity)
     {
