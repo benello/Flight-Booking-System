@@ -1,11 +1,12 @@
 using DataAccess.Contracts;
 using DataAccess.DataContext;
 using Domain.Models;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace DataAccess.Repositories;
 
 public class PassportDbRepository
-    : IRepository<Passport>
+    : IPassportRepository
 {
     private readonly AirlineDbContext dbContext;
     
@@ -38,13 +39,11 @@ public class PassportDbRepository
         return dbContext.SaveChanges() > 0;
     }
 
-    public Passport? Get(int id)
-    {
-        return dbContext.Passports.Find(id);
-    }
+    public Passport? Get(int id) => dbContext.Passports.Find(id);
 
-    public IQueryable<Passport> GetAll()
-    {
-        return dbContext.Passports;
-    }
+    public IQueryable<Passport> GetAll() => dbContext.Passports;
+
+    public bool PassportExists(string passportNumber) => dbContext.Passports.Any(ticket => ticket.PassportNumber == passportNumber);
+    
+    public IDbContextTransaction BeginTransaction() => dbContext.Database.BeginTransaction();
 }

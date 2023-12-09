@@ -9,7 +9,7 @@ namespace DataAccess.Contracts;
 /// </summary>
 /// <typeparam name="TEntity">The entity that the operations will be performed on</typeparam>
 public interface IRepository<TEntity>
-    where TEntity : IDbModel
+    : ITransaction where TEntity : IDbModel
 {
     bool Add(TEntity entity);
     bool AddRange(IEnumerable<TEntity> entities);

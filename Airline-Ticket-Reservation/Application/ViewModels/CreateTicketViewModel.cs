@@ -9,7 +9,7 @@ namespace Application.ViewModels;
 public class CreateTicketViewModel
 {
     public IEnumerable<Seat>? AllSeats { get; set; }
-    public HashSet<int>? AvailableSeats { get; set; }
+    public HashSet<int>? AvailableSeatIds { get; set; }
 
     [Required(AllowEmptyStrings = false, ErrorMessage = "Passport cannot be left blank")]
     public string PassportNumber { get; set; } = null!;
@@ -18,27 +18,28 @@ public class CreateTicketViewModel
     public IFormFile PassportImage { get; set; } = null!;
     
     [Display(Name = "Seat")]
-    [Required(ErrorMessage = "Seat must be selected"), SingleSeatBooking(nameof(FlightId))]
+    [Required(ErrorMessage = "Seat must be selected")]
+    [SeatAvailable]
     public int SeatId { get; set; }
 
     [Display(Name = "Price to pay")] 
     public double PriceToPay {get; set; }
 
     [HiddenInput(DisplayValue = false)]
-    [FutureFlightBooking]
+    [FutureFlight]
     public int FlightId { get; set; }
     
 }
 
 public static class BookTicketViewModelExtensions
 {
-    public static CreateTicketViewModel ToCreateTicketViewModel(this Flight flight, IEnumerable<Seat> availableSeats)
+    public static CreateTicketViewModel ToCreateTicketViewModel(this Flight flight, IEnumerable<int> availableSeatIds)
     {
         return new CreateTicketViewModel
         {
             FlightId = flight.Id,
             AllSeats = flight.Seats,
-            AvailableSeats = availableSeats.Select(seat => seat.Id).ToHashSet(),
+            AvailableSeatIds = availableSeatIds.ToHashSet(),
             PriceToPay =  Math.Round((flight.CommissionRate ?? 0) * flight.WholeSalePrice + flight.WholeSalePrice, 2),
         };
     }

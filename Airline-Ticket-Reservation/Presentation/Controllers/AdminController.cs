@@ -7,30 +7,32 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Airline_Ticket_Reservation.Controllers;
 
-//[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin")]
 public class AdminController : Controller
 {
-    private readonly IAirlineService airlineService;
+    private readonly IAdminService adminService;
     
-    public AdminController(IAirlineService airlineService)
+    public AdminController(IAdminService adminService)
     {
-        this.airlineService = airlineService;
+        this.adminService = adminService;
     }
     
     // GET
     public IActionResult Index()
     {
-        var flightsQuery = airlineService.GetAllFlights().AsQueryable();
-        var ticketsQuery = airlineService.GetAllTickets().AsQueryable();
+        /*var flightsQuery = flightService.GetAllFlights();
+        var ticketsQuery = ticketService.GetAllTickets();
         var statistics = new AdminStatisticsViewModel()
         {
             TotalFlights = flightsQuery.Count(),
             TotalFlightsThisMonth = flightsQuery.Count(flight => flight.DepartureDate.Month == DateTime.UtcNow.Month),
             TotalPassengers = ticketsQuery.Count(ticket => !ticket.Cancelled),
             TotalTickets = ticketsQuery.Count(),
-            TotalRevenue = ticketsQuery.Where(ticket => !ticket.Cancelled)
-                .Sum(ticket => ticket.PricePaid),
-        };
+            TotalRevenue = Math.Round(ticketsQuery.Where(ticket => !ticket.Cancelled)
+                .Sum(ticket => ticket.PricePaid), 2),
+        };*/
+
+        var statistics = new AdminStatisticsViewModel();
         
         return View(statistics);
     }
@@ -45,7 +47,7 @@ public class AdminController : Controller
     {
         try
         {
-            airlineService.AddFlight(flight);
+            adminService.AddFlightWithSeats(flight);
             TempData["Success"] = "Flight added successfully.";
         }
         catch (Exception ex)
@@ -58,23 +60,21 @@ public class AdminController : Controller
     
     public IActionResult Flights(int page = 1, int pageSize = 10)
     {
-        var flights = airlineService.GetAllFlights()
-            .AsQueryable()
+        /*var flights = flightService.GetAllFlights()
             .ToListFlightViewModels();
         
-        var paginatedFlights = flights.ToPaginationInfo(pageSize, page);
+        var paginatedFlights = flights.ToPaginationInfo(pageSize, page);*/
         
-        return View(paginatedFlights);
+        return View(/*paginatedFlights*/);
     }
     
     public IActionResult Tickets(int flightId, int page = 1, int pageSize = 10)
     {
-        var tickets = airlineService.GetFlightTickets(flightId)
-            .AsQueryable()
+        /*var tickets = ticketService.GetFlightTickets(flightId)
             .ToListTicketViewModels();
         
-        var paginatedTickets = tickets.ToPaginationInfo(pageSize, page);
+        var paginatedTickets = tickets.ToPaginationInfo(pageSize, page);*/
         
-        return View(paginatedTickets);
+        return View(/*paginatedTickets*/);
     }
 }

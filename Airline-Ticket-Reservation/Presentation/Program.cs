@@ -1,9 +1,9 @@
 using Application.Contracts;
 using Application.Services;
+using DataAccess;
 using DataAccess.Contracts;
 using DataAccess.DataContext;
 using DataAccess.Repositories;
-using DataAccess.Triggers;
 using Domain.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -22,12 +22,7 @@ else
     connection = builder.Configuration.GetConnectionString("SQLAZURECONNSTR_DefaultConnection");
 }
 
-builder.Services.AddDbContext<AirlineDbContext>(options =>
-{
-    options.UseSqlServer(connection);
-    options.UseTriggers(triggerOptions =>
-        triggerOptions.AddTrigger<CreateSeatsAfterFlightAdded>());
-});
+builder.Services.AddDbContext<AirlineDbContext>(options => options.UseSqlServer(connection));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -36,17 +31,13 @@ builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfi
     .AddEntityFrameworkStores<AirlineDbContext>();
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddScoped<IRepository<Ticket>, TicketDbRepository>();
-builder.Services.AddScoped<IRepository<Flight>, FlightDbRepository>();
-builder.Services.AddScoped<IRepository<Seat>, SeatDbRepository>();
-builder.Services.AddScoped<IRepository<Passport>, PassportDbRepository>();
-builder.Services.AddScoped<ITicketService, AirlineService>();
-builder.Services.AddScoped<ISeatService, AirlineService>();
-builder.Services.AddScoped<IFlightService, AirlineService>();
+builder.Services.AddScoped<ITicketsRepository, TicketDbRepository>();
+builder.Services.AddScoped<IFlightsRepository, FlightDbRepository>();
+builder.Services.AddScoped<ISeatsRepository, SeatDbRepository>();
+builder.Services.AddScoped<IPassportRepository, PassportDbRepository>();
 builder.Services.AddScoped<IAirlineService, AirlineService>();
-builder.Services.AddScoped<IPassportService, PassportService>();
-builder.Services.AddSingleton<FileService>();
-builder.Services.AddScoped<TransactionService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<FileService>();
 
 var app = builder.Build();
 
@@ -73,6 +64,27 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// Seeded here for simplicity
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetService<RoleManager<IdentityRole>>();
+    await SeedRoles(roleManager);
+}
+
 app.MapRazorPages();
 
 app.Run();
+
+
+async Task SeedRoles(RoleManager<IdentityRole>? roleManager)
+{
+    if (roleManager is null)
+        return;
+    
+    if (!await roleManager.RoleExistsAsync("Admin"))
+        await roleManager.CreateAsync(new IdentityRole("Admin"));
+
+    if (!await roleManager.RoleExistsAsync("User"))
+        await roleManager.CreateAsync(new IdentityRole("User"));
+}

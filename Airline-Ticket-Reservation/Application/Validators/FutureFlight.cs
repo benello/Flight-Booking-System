@@ -4,21 +4,22 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Application.Validators;
 
-public class FutureFlightBooking
+public class FutureFlight
     : ValidationAttribute
 {
     private static string GetErrorMessage() => "Flight has already departed";
     
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
     {
-        // check if flight has already departed by checking if date is in the past or getting the flight and checking
-
-        if (value is DateTime date && date < DateTime.UtcNow
-            || value is int flightId && validationContext.GetService<IFlightService>()?.GetFlight(flightId)?.DepartureDate < DateTime.UtcNow)
-            return new ValidationResult(GetErrorMessage());
+        var service = validationContext.GetService<IAirlineService>() 
+                      ?? throw new Exception("Service could not be retrieved");
         
-        if (value is not DateTime && value is not int)
-            return new ValidationResult("Flight id or date is required");
+        if (value is not int flightId)
+            return new ValidationResult("Id must be of type int");
+        
+        // check if flight has already departed by checking if date is in the past or getting the flight and checking
+        if (service.FlightDeparted(flightId))
+            return new ValidationResult(GetErrorMessage());
         
         return ValidationResult.Success;
     }

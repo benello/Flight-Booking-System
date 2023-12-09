@@ -41,7 +41,7 @@
                         @foreach (var seat in rowSeats)
                         {
                             <div class="col-2">
-                                <span class="seat material-icons md-48 @(!Model.AvailableSeats!.Contains(seat.Id) ? "booked" : "available")"
+                                <span class="seat material-icons md-48 @(!Model.AvailableSeatIds!.Contains(seat.Id) ? "booked" : "available")"
                                       data-seat-name=@($"R{seat.RowNumber}-C{seat.ColumnNumber}") data-seat-id=@seat.Id>event_seat</span>
                             </div>
                         }

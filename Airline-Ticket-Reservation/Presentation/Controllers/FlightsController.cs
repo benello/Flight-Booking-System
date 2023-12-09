@@ -1,8 +1,7 @@
 using Application.Contracts;
-using Application.Enums;
 using Application.Pagination;
-using Application.Services;
 using Application.ViewModels;
+using DataAccess.Contracts;
 using Domain.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -14,24 +13,19 @@ public class FlightsController
     : Controller
 {
     private readonly IAirlineService airlineService;
-    private readonly IPassportService passportService;
     private readonly UserManager<User> userManager;
     private readonly SignInManager<User> signInManager;
     
-    public FlightsController(IAirlineService airlineService, IPassportService passportService,
-        UserManager<User> userManager, SignInManager<User> signInManager)
+    public FlightsController(IAirlineService airlineService, UserManager<User> userManager, SignInManager<User> signInManager)
     {
         this.airlineService = airlineService;
-        this.passportService = passportService;
         this.userManager = userManager;
         this.signInManager = signInManager;
     }
     
-    // GET
     public IActionResult Index(int page = 1, int pageSize = 10)
     {
         var availableFlights = airlineService.GetAvailableFlights()
-            .AsQueryable()
             .ToListFlightViewModels();
 
         var paginatedFlights = availableFlights.ToPaginationInfo(pageSize, page);
@@ -43,33 +37,34 @@ public class FlightsController
     {
         try
         {
-            var flight = airlineService.GetFlight(flightId);
-            if (flight == null)
-                throw new Exception("Flight does not exist.");
+            var targetFlight = airlineService.GetFlight(flightId);
+            var availableSeatIds = airlineService.GetAvailableSeats(flightId)
+                .Select(seat => seat.Id)
+                .ToHashSet();
             
-            var availableSeats = airlineService.GetAvailableSeats(flight.Id).AsEnumerable();
-
-            // Check if flight is full
-            if (airlineService.FlightFull(flight.Id))
-                throw new Exception("Flight is full.");
+            // Check if flight is full in memory since the seat ids are still needed for the view
+            if (!availableSeatIds.Any())
+                throw new InvalidOperationException("Flight is full.");
             
-            var newTicket = flight.ToCreateTicketViewModel(availableSeats);
-            
+            var newTicket = targetFlight.ToCreateTicketViewModel(availableSeatIds);
             return View(newTicket);
         }
         catch (Exception ex)
         {
             TempData["Error"] = ex.Message;
+            // swallow
         }
         
         return RedirectToAction(nameof(Index));
     }
     
     [HttpPost]
-    public IActionResult Book(CreateTicketViewModel ticketToAdd, Passport passport, [FromServices] FileService fileService)
+    public IActionResult Book(CreateTicketViewModel createTicket)
     {
         try
         {
+            var ticket = createTicket.ToTicket();
+            
             if (!ModelState.IsValid)
             {
                 // If flight id is invalid, the flight has departed. Therefore, ticket cannot be booked
@@ -78,35 +73,28 @@ public class FlightsController
                 
                 // If seat is invalid, reset it to 0 so that the seat dropdown is not selected
                 if (ModelState.GetFieldValidationState(nameof(CreateTicketViewModel.SeatId)) == ModelValidationState.Invalid)
-                    ticketToAdd.SeatId = 0;
+                    createTicket.SeatId = 0;
                 
-                // Check if flight is full in memory since the seats are still needed for the view
-                if (airlineService.FlightFull(ticketToAdd.FlightId))
+                // Do not continue if flight is full
+                if (airlineService.FlightFull(createTicket.FlightId))
                     throw new ArgumentException("Flight is full.");
 
-                ticketToAdd.AllSeats = airlineService.GetFlightSeats(ticketToAdd.FlightId);
-                ticketToAdd.AvailableSeats = airlineService.GetAvailableSeats(ticketToAdd.FlightId)
+                createTicket.AllSeats = airlineService.GetFlightSeats(createTicket.FlightId);
+                createTicket.AvailableSeatIds = airlineService.GetAvailableSeats(createTicket.FlightId)
                     .Select(seat => seat.Id)
                     .ToHashSet();
-
-                ticketToAdd.PassportNumber = passport.PassportNumber;
                 
-                return View(ticketToAdd);
-            }
-
-            if (!passportService.PassportExists(ticketToAdd.PassportNumber))
-            {
-                var relativePath = fileService.SaveFile(ticketToAdd.PassportImage, FileCategory.Passport);
-                passport.Image = relativePath;
-                passportService.AddPassport(passport);   
+                return View(createTicket);
             }
             
-            airlineService.BookTicket(ticketToAdd.ToTicket());
+            airlineService.BookTicket(ticket, createTicket.PassportImage);
+            
             TempData["Success"] = "Ticket booked successfully.";
         }
         catch (Exception ex)
         {
             TempData["Error"] = ex.Message;
+            // swallow
         }
         
         return RedirectToAction(nameof(Index));
@@ -122,27 +110,26 @@ public class FlightsController
         catch (Exception ex)
         {
             TempData["Error"] = ex.Message;
+            // swallow
         }
 
         return RedirectToAction(nameof(Tickets), new {passportNumber = userManager.GetUserAsync(User).Result.PassportNumber});
     }
     
     
-    public IActionResult Tickets(int page = 1, int pageSize = 10)
+    public IActionResult Tickets([FromServices] ITicketsRepository ticketsRepository, int page = 1, int pageSize = 10)
     {
         if (!signInManager.IsSignedIn(User))
         {
+            TempData["warning"] = "You must be logged in to access Tickets";
             return RedirectToAction(nameof(Index));
         }
 
         var passportNumber = userManager.GetUserAsync(User).Result.PassportNumber ?? string.Empty;
-
-        var userTickets = airlineService.GetUserTickets(passportNumber)
-            .AsQueryable()
+        var userTickets = ticketsRepository.GetUserTickets(passportNumber)
             .ToListTicketViewModels();
 
         var paginatedTickets = userTickets.ToPaginationInfo(pageSize, page);
-        
         return View(paginatedTickets);
     }
 }

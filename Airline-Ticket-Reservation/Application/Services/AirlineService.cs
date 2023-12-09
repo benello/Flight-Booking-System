@@ -1,166 +1,113 @@
 using Application.Contracts;
+using Application.Enums;
 using DataAccess.Contracts;
-using Domain.Enums;
 using Domain.Models;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 
 namespace Application.Services;
 
 public class AirlineService
     : IAirlineService
 {
-    private readonly IRepository<Flight> flightRepo;
-    private readonly IRepository<Seat> seatRepo;
-    private readonly IRepository<Ticket> ticketRepo;
-    private readonly TransactionService transactionService;
+    private readonly IFlightsRepository flightsRepository;
+    private readonly ISeatsRepository seatsRepository;
+    private readonly ITicketsRepository ticketsRepository;
+    private readonly IPassportRepository passportRepository;
+    private readonly FileService fileService;
 
-    public AirlineService(IRepository<Flight> flightRepo, IRepository<Seat> seatRepo, IRepository<Ticket> ticketRepo, TransactionService transactionService)
+    public AirlineService(IFlightsRepository flightsRepo, ISeatsRepository seatsRepo, ITicketsRepository ticketRepo,
+            IPassportRepository passportRepo, FileService fileService)
     {
-        this.flightRepo = flightRepo;
-        this.seatRepo = seatRepo;
-        this.ticketRepo = ticketRepo;
-        this.transactionService = transactionService;
+        flightsRepository = flightsRepo;
+        seatsRepository = seatsRepo;
+        ticketsRepository = ticketRepo;
+        passportRepository = passportRepo;
+        this.fileService = fileService;
     }
-
-    public void AddFlight(Flight flight)
+    
+    public void BookTicket(Ticket ticket, IFormFile passportImage)
     {
-        using var transaction = transactionService.BeginTransaction();
+        if (!flightsRepository.FlightExists(ticket.FlightId))
+            throw new InvalidOperationException("Ticket cannot be booked as flight does not exist");
         
-        var flightAdded = flightRepo.Add(flight);
-        if (!flightAdded)
+        if (!passportRepository.PassportExists(ticket.PassportNumber))
         {
-            transaction.Rollback();
-            throw new DbUpdateException("Flight could not be added.");
+            var passport = new Passport()
+            {
+                PassportNumber = ticket.PassportNumber,
+                Image = fileService.SaveFile(passportImage, FileCategory.Passport),
+            };
+            passportRepository.Add(passport);   
         }
-        
-        transaction.Commit();
-    }
-    
-    public bool FlightExists(int flightId)
-    {
-        return flightRepo.GetAll().Any(flight => flight.Id == flightId);
-    }
-    
-    public bool FlightFull(int flightId)
-    {
-        using var transaction = transactionService.BeginTransaction();
-        
-        return !GetAvailableSeats(flightId)
-            .AsQueryable()
-            .Any();
-    }
-    
-    public Flight? GetFlight(int flightId)
-    {
-        return flightRepo.Get(flightId);
-    }
-
-    public IEnumerable<Flight> GetAllFlights()
-    {
-        return flightRepo.GetAll();
-    }
-
-    public IEnumerable<Flight> GetAvailableFlights()
-    {
-         return flightRepo.GetAll()
-            .Where(flight => flight.DepartureDate > DateTime.UtcNow 
-                && flight.Tickets.Count(ticket => !ticket.Cancelled) < flight.Rows * flight.Columns);    
-    }
-
-    public IEnumerable<Seat> GetFlightSeats(int flightId)
-    {
-        return seatRepo.GetAll()
-            .Where(seat => seat.FlightId == flightId);
-    }
-    
-     public IEnumerable<Seat> GetAvailableSeats(int flightId)
-    {
-        var allFlightSeats = seatRepo.GetAll()
-            .Where(seat => seat.FlightId == flightId);
             
-        var takenSeats = ticketRepo.GetAll()
-            .Where(ticket => ticket.FlightId == flightId && ticket.SeatId.HasValue)
-            .Select(ticket => ticket.Seat!);
-
-        return allFlightSeats.Except(takenSeats);
-    }
-    
-    public int GetAvailableSeatsCount(int flightId)
-    {
-        return GetAvailableSeats(flightId)
-            .AsQueryable()
-            .Count();
-    }
-
-    public bool IsSeatAvailable(int seatId)
-    {
-        if (!SeatExists(seatId))
-            throw new ArgumentException("Seat does not exist.");
-        
-        return !ticketRepo.GetAll().Any(ticket => ticket.SeatId == seatId);
-    }
-    
-    public bool SeatExists(int seatId)
-    {
-        return seatRepo.GetAll().Any(seat => seat.Id == seatId);
-    }
-    
-    public bool SeatBelongsToFlight(int seatId, int flightId)
-    {
-        return seatRepo.GetAll().Any(seat => seat.Id == seatId && seat.FlightId == flightId);
-    }
-    
-    public void BookTicket(Ticket ticket)
-    {  
-        using var transaction = transactionService.BeginTransaction();
-
-        if (ticket.SeatId.HasValue && !IsSeatAvailable(ticket.SeatId.Value))
-        {
-            transaction.Rollback();
-            throw new ArgumentException("Seat is not available.", nameof(ticket.SeatId));
-        }
-        
-        var ticketAdded = ticketRepo.Add(ticket);
-        if (!ticketAdded)
-        {
-            transaction.Rollback();
-            throw new DbUpdateException("Ticket could not be added.");
-        }
-        
-        transaction.Commit();
+        ticketsRepository.Add(ticket);
     }
 
     public void CancelTicket(int ticketId)
     {
-        var ticket = ticketRepo.Get(ticketId) ?? throw new ArgumentException("Ticket does not exist.", nameof(ticketId));
+        var ticket = ticketsRepository.Get(ticketId)
+                     ?? throw new ArgumentException("Ticket does not exist.", nameof(ticketId));
         
-        using var transaction = transactionService.BeginTransaction();
-
         ticket.Cancelled = true;
         ticket.SeatId = null;
         
-        var ticketUpdated = ticketRepo.Update(ticket);
-        if (!ticketUpdated)
-        {
-            transaction.Rollback();
-            throw new DbUpdateException("Ticket could not be updated.");
-        }
-        
-        transaction.Commit();
-    }
-    
-    public IEnumerable<Ticket> GetFlightTickets(int flightId)
-    {
-        return ticketRepo.GetAll().Where(ticket => ticket.FlightId == flightId);
+        ticketsRepository.Update(ticket);
     }
 
-    public IEnumerable<Ticket> GetAllTickets()
+    public bool FlightDeparted(int flightId)
     {
-        return ticketRepo.GetAll();
+        var flight = GetFlight(flightId);
+
+        return flight.DepartureDate <= DateTime.UtcNow;
+    }
+
+    public bool SeatBooked(int seatId)
+    {
+        if (!seatsRepository.SeatExists(seatId))
+            throw new ArgumentException("Seat does not exist.", nameof(seatId));
+
+        return seatsRepository.GetAll()
+            .Any(seat => seat.Id == seatId && seat.Ticket != null && !seat.Ticket.Cancelled);
     }
     
-    public IEnumerable<Ticket> GetUserTickets(string passportNumber)
+    public bool FlightFull(int flightId)
     {
-        return ticketRepo.GetAll().Where(ticket => ticket.PassportNumber == passportNumber);
+        var flight = GetFlight(flightId);
+
+        var totalTickets = flight.Tickets.AsQueryable().Count(ticket => !ticket.Cancelled);
+        return totalTickets >= flight.Rows * flight.Columns;
+    }
+    
+    public Flight GetFlight(int flightId)
+    {
+        return flightsRepository.Get(flightId) ?? 
+               throw new ArgumentException("Flight does not exist.", nameof(flightId));
+    }
+    
+    public IQueryable<Flight> GetAvailableFlights()
+    {
+        return flightsRepository.GetAll().Where(flight => flight.DepartureDate > DateTime.UtcNow 
+                                                    && flight.Tickets.Count(ticket => !ticket.Cancelled) < flight.Rows * flight.Columns);
+    }
+
+    public IQueryable<Seat> GetFlightSeats(int flightId)
+    {
+        if (flightsRepository.FlightExists(flightId))
+            throw new ArgumentException("Flight does not exist", nameof(flightId));
+        
+        return seatsRepository.GetFlightSeats(flightId);
+    }
+    
+    public IQueryable<Seat> GetAvailableSeats(int flightId)
+    {
+        var allFlightSeats = seatsRepository.GetAll().Where(seat => seat.FlightId == flightId);
+        var takenSeats = allFlightSeats.Where(seat => seat.Ticket != null && !seat.Ticket.Cancelled);
+
+        return allFlightSeats.Except(takenSeats);
+    }
+
+    public IQueryable<Ticket> GetFlightTickets(int flightId)
+    {
+        throw new NotImplementedException();
     }
 }

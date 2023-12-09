@@ -1,11 +1,12 @@
 using DataAccess.Contracts;
 using DataAccess.DataContext;
 using Domain.Models;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace DataAccess.Repositories;
 
 public class FlightDbRepository
-    : IRepository<Flight>
+    : IFlightsRepository
 {
     private readonly AirlineDbContext dbContext;
     
@@ -38,13 +39,11 @@ public class FlightDbRepository
         return dbContext.SaveChanges() > 0;
     }
 
-    public Flight? Get(int id)
-    {
-        return dbContext.Flights.Find(id);
-    }
+    public Flight? Get(int id) => dbContext.Flights.Find(id);
 
-    public IQueryable<Flight> GetAll()
-    {
-        return dbContext.Flights;
-    }
+    public IQueryable<Flight> GetAll() => dbContext.Flights;
+
+    public bool FlightExists(int flightId) => dbContext.Flights.Any(flight => flight.Id == flightId);
+
+    public IDbContextTransaction BeginTransaction() => dbContext.Database.BeginTransaction();
 }

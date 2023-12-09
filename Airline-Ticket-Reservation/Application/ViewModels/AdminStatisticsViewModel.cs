@@ -18,6 +18,4 @@ public class AdminStatisticsViewModel
     
     [Display(Name = "Flights This Month")]
     public int TotalFlightsThisMonth { get; set; }
-    
-    
 }
