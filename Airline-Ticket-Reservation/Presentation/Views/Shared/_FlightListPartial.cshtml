@@ -2,6 +2,11 @@
 @using Application.ViewModels
 @using Airline_Ticket_Reservation.Controllers
 @model PaginationInfoWithItems<ListFlightViewModel>
+@*See details button is custimzable if action and controller is passed in the view data. Defaults to home controller and book action*@
+@{
+    var action = ViewData["actionName"]?.ToString() ?? nameof(FlightsController.Book);
+    var controller = ViewData["controller"]?.ToString() ?? "Flights";
+}
 
 <div class="container">
     <div class="row">
@@ -34,10 +39,9 @@
                                 </div>
                             </div>
                             <div class="job-right my-4 flex-shrink-0">
-                                <a href="@Url.ActionLink(nameof(FlightsController.Book), "Flights", new { flightId = item.Id })" class="btn d-block w-100 d-sm-inline-block btn-light">See Details</a>
+                                <a href="@Url.ActionLink(action, controller, new { flightId = item.Id })" class="btn d-block w-100 d-sm-inline-block btn-light">See Details</a>
                             </div>
                         </div>
-
                     }
                 </div>
             </div>

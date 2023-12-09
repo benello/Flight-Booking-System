@@ -1,6 +1,8 @@
 using Application.Contracts;
 using Application.Pagination;
 using Application.ViewModels;
+using Application.ViewModels.Admin;
+using DataAccess.Contracts;
 using Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,29 +13,18 @@ namespace Airline_Ticket_Reservation.Controllers;
 public class AdminController : Controller
 {
     private readonly IAdminService adminService;
+    private readonly IAirlineService airlineService;
     
-    public AdminController(IAdminService adminService)
+    public AdminController(IAdminService adminService, IAirlineService airlineService)
     {
         this.adminService = adminService;
+        this.airlineService = airlineService;
     }
     
     // GET
     public IActionResult Index()
     {
-        /*var flightsQuery = flightService.GetAllFlights();
-        var ticketsQuery = ticketService.GetAllTickets();
-        var statistics = new AdminStatisticsViewModel()
-        {
-            TotalFlights = flightsQuery.Count(),
-            TotalFlightsThisMonth = flightsQuery.Count(flight => flight.DepartureDate.Month == DateTime.UtcNow.Month),
-            TotalPassengers = ticketsQuery.Count(ticket => !ticket.Cancelled),
-            TotalTickets = ticketsQuery.Count(),
-            TotalRevenue = Math.Round(ticketsQuery.Where(ticket => !ticket.Cancelled)
-                .Sum(ticket => ticket.PricePaid), 2),
-        };*/
-
-        var statistics = new AdminStatisticsViewModel();
-        
+        var statistics = adminService.GetStatistics();
         return View(statistics);
     }
     
@@ -58,23 +49,46 @@ public class AdminController : Controller
         return RedirectToAction(nameof(Index));
     }
     
-    public IActionResult Flights(int page = 1, int pageSize = 10)
+    public IActionResult Flights([FromServices] IFlightsRepository flightsRepository, int page = 1, int pageSize = 10)
     {
-        /*var flights = flightService.GetAllFlights()
+        var flights = flightsRepository.GetAll()
             .ToListFlightViewModels();
         
-        var paginatedFlights = flights.ToPaginationInfo(pageSize, page);*/
-        
-        return View(/*paginatedFlights*/);
+        var paginatedFlights = flights.ToPaginationInfo(pageSize, page);
+        ViewData["actionName"] = nameof(FlightDetails);
+        ViewData["controller"] = "admin";
+        return View(paginatedFlights);
     }
     
-    public IActionResult Tickets(int flightId, int page = 1, int pageSize = 10)
+    public IActionResult FlightDetails(int flightId)
     {
-        /*var tickets = ticketService.GetFlightTickets(flightId)
-            .ToListTicketViewModels();
-        
-        var paginatedTickets = tickets.ToPaginationInfo(pageSize, page);*/
-        
-        return View(/*paginatedTickets*/);
+        try
+        {
+            var targetFlight = airlineService.GetFlight(flightId);
+            return View(targetFlight.ToFlightDetailsViewModel());
+        }
+        catch (Exception ex)
+        {
+            TempData["error"] = ex.Message;
+            // swallow
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    public IActionResult TicketDetails(int ticketId, [FromServices] ITicketsRepository ticketsRepository)
+    {
+        try
+        {
+            var ticket = adminService.GetTicket(ticketId);
+            return View(ticket.ToTicketDetailsViewModel());
+        }
+        catch (Exception ex)
+        {
+            TempData["error"] = ex.Message;
+            // swallow
+        }
+
+        return RedirectToAction(nameof(Index));
     }
 }

@@ -1,0 +1,46 @@
+@using Application.ViewModels.Admin
+@model TicketDetailsViewModel
+
+@{
+    ViewData["Title"] = "TicketDetails";
+}
+
+<h1>Ticket Details</h1>
+
+<div class="container">
+    <div class="card">
+        <div class="card-body">
+            <h3 class="card-title">Ticket #@Model.Id</h3>
+            <div class="text-center">
+                <img src=@Model.PassportImage width="75%" class="img-thumbnail mx-auto"/>
+            </div>
+            <div class="row">
+                <div class="col-lg-12 col-md-12 col-sm-12">
+                    <h3 class="box-title mt-5">General Info</h3>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-product">
+                            <tbody>
+                            <tr>
+                                <td width="390">@Html.DisplayNameFor(model => model.Price)</td>
+                                <td>@Model.Price</td>
+                            </tr>
+                            <tr>
+                                <td>@Html.DisplayNameFor(model => model.Cancelled)</td>
+                                <td>@Model.Cancelled</td>
+                            </tr>
+                            <tr>
+                                <td>@Html.DisplayNameFor(model => model.SeatNumber)</td>
+                                <td>@Model.SeatNumber</td>
+                            </tr>
+                            <tr>
+                                <td>@Html.DisplayNameFor(model => model.PassportNumber)</td>
+                                <td>@Model.PassportNumber</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
