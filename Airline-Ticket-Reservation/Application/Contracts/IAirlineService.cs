@@ -14,5 +14,4 @@ public interface IAirlineService
     IQueryable<Flight> GetAvailableFlights();
     IQueryable<Seat> GetFlightSeats(int flightId);
     IQueryable<Seat> GetAvailableSeats(int flightId);
-    IQueryable<Ticket> GetFlightTickets(int flightId);
 }

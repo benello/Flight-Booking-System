@@ -63,7 +63,7 @@ public class FileService
     private static string PrependRelativePath(string relativePath)
     {
         if (!relativePath.StartsWith(Path.PathSeparator))
-           return $"{Path.PathSeparator}{relativePath}";
+           return $"{Path.DirectorySeparatorChar}{relativePath}";
         
         return relativePath;
     }

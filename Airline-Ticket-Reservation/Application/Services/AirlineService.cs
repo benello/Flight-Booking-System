@@ -92,7 +92,7 @@ public class AirlineService
 
     public IQueryable<Seat> GetFlightSeats(int flightId)
     {
-        if (flightsRepository.FlightExists(flightId))
+        if (!flightsRepository.FlightExists(flightId))
             throw new ArgumentException("Flight does not exist", nameof(flightId));
         
         return seatsRepository.GetFlightSeats(flightId);
@@ -104,10 +104,5 @@ public class AirlineService
         var takenSeats = allFlightSeats.Where(seat => seat.Ticket != null && !seat.Ticket.Cancelled);
 
         return allFlightSeats.Except(takenSeats);
-    }
-
-    public IQueryable<Ticket> GetFlightTickets(int flightId)
-    {
-        throw new NotImplementedException();
     }
 }

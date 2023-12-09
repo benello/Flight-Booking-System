@@ -1,5 +1,6 @@
 using Application.Contracts;
-using DataAccess;
+using Application.ViewModels;
+using Application.ViewModels.Admin;
 using DataAccess.Contracts;
 using Domain.Enums;
 using Domain.Models;
@@ -11,11 +12,13 @@ public class AdminService
 {
     private readonly IFlightsRepository flightsRepository;
     private readonly ISeatsRepository seatsRepository;
+    private readonly ITicketsRepository ticketsRepository;
 
-    public AdminService(IFlightsRepository flightsRepo, ISeatsRepository seatsRepo)
+    public AdminService(IFlightsRepository flightsRepo, ISeatsRepository seatsRepo, ITicketsRepository ticketsRepo)
     {
         flightsRepository = flightsRepo;
         seatsRepository = seatsRepo;
+        ticketsRepository = ticketsRepo;
     }
 
     public void AddFlightWithSeats(Flight flight)
@@ -43,8 +46,29 @@ public class AdminService
             throw;
         }
     }
-    
-    private SeatType CalculateSeatType(int column, int totalColumns)
+
+    public StatisticsViewModel GetStatistics()
+    {
+        var flightsQuery = flightsRepository.GetAll();
+        var ticketsQuery = ticketsRepository.GetAll();
+        return new StatisticsViewModel()
+        {
+            TotalFlights = flightsQuery.Count(),
+            TotalFlightsThisMonth = flightsQuery.Count(flight => flight.DepartureDate.Month == DateTime.UtcNow.Month),
+            TotalPassengers = ticketsQuery.Count(ticket => !ticket.Cancelled),
+            TotalTickets = ticketsQuery.Count(),
+            TotalRevenue = Math.Round(ticketsQuery.Where(ticket => !ticket.Cancelled)
+                .Sum(ticket => ticket.PricePaid), 2),
+        };
+    }
+
+    public Ticket GetTicket(int ticketId)
+    {
+        return ticketsRepository.Get(ticketId) ??
+               throw new ArgumentException("Ticket does not exist", nameof(ticketId));
+    }
+
+    private static SeatType CalculateSeatType(int column, int totalColumns)
     {
         if (column == 1 || column == totalColumns)
             return SeatType.Window;
