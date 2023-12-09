@@ -3,7 +3,7 @@ using DataAccess.DataContext;
 using Domain.Models;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace DataAccess.Repositories;
+namespace DataAccess.Repositories.Db;
 
 public class SeatDbRepository
     : ISeatsRepository
@@ -49,6 +49,4 @@ public class SeatDbRepository
     
     public bool SeatBelongsToFlight(int seatId, int flightId) => dbContext.Seats.Any(seat => seat.Id == seatId
                                                                     && seat.FlightId == flightId);
-
-    public IDbContextTransaction BeginTransaction() => dbContext.Database.BeginTransaction();
 }

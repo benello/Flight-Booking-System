@@ -29,15 +29,23 @@ public class AirlineService
     {
         if (!flightsRepository.FlightExists(ticket.FlightId))
             throw new InvalidOperationException("Ticket cannot be booked as flight does not exist");
-        
-        if (!passportRepository.PassportExists(ticket.PassportNumber))
+
+        var passport = passportRepository.Get(ticket.PassportNumber);
+        if (passport is null)
         {
-            var passport = new Passport()
+            passport = new Passport()
             {
                 PassportNumber = ticket.PassportNumber,
                 Image = fileService.SaveFile(passportImage, FileCategory.Passport),
             };
             passportRepository.Add(passport);   
+        }
+        else if (passport.Image is not null)
+        {
+            fileService.DeleteFile(passport.Image);
+            passport.Image = fileService.SaveFile(passportImage, FileCategory.Passport);
+
+            passportRepository.Update(passport);
         }
             
         ticketsRepository.Add(ticket);
@@ -92,7 +100,7 @@ public class AirlineService
 
     public IQueryable<Seat> GetFlightSeats(int flightId)
     {
-        if (flightsRepository.FlightExists(flightId))
+        if (!flightsRepository.FlightExists(flightId))
             throw new ArgumentException("Flight does not exist", nameof(flightId));
         
         return seatsRepository.GetFlightSeats(flightId);
@@ -104,10 +112,5 @@ public class AirlineService
         var takenSeats = allFlightSeats.Where(seat => seat.Ticket != null && !seat.Ticket.Cancelled);
 
         return allFlightSeats.Except(takenSeats);
-    }
-
-    public IQueryable<Ticket> GetFlightTickets(int flightId)
-    {
-        throw new NotImplementedException();
     }
 }

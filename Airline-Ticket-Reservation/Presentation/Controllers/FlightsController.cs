@@ -47,6 +47,15 @@ public class FlightsController
                 throw new InvalidOperationException("Flight is full.");
             
             var newTicket = targetFlight.ToCreateTicketViewModel(availableSeatIds);
+
+            if (signInManager.IsSignedIn(User))
+            {
+                var passportTask = userManager.GetUserAsync(User);
+                passportTask.Wait();
+                var passport = passportTask.Result?.Passport;
+                newTicket.PassportNumber = passport?.PassportNumber ?? string.Empty;
+            }
+            
             return View(newTicket);
         }
         catch (Exception ex)
@@ -113,23 +122,36 @@ public class FlightsController
             // swallow
         }
 
-        return RedirectToAction(nameof(Tickets), new {passportNumber = userManager.GetUserAsync(User).Result.PassportNumber});
+        return RedirectToAction(nameof(Tickets), new {passportNumber = userManager.GetUserAsync(User).Result?.PassportNumber});
     }
     
     
     public IActionResult Tickets([FromServices] ITicketsRepository ticketsRepository, int page = 1, int pageSize = 10)
     {
-        if (!signInManager.IsSignedIn(User))
+        try
         {
-            TempData["warning"] = "You must be logged in to access Tickets";
-            return RedirectToAction(nameof(Index));
+            if (!signInManager.IsSignedIn(User))
+            {
+                TempData["warning"] = "You must be logged in to access Tickets";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var passportTask = userManager.GetUserAsync(User);
+            passportTask.Wait();
+
+            var passportNumber = passportTask.Result?.PassportNumber ?? string.Empty;
+            var userTickets = ticketsRepository.GetUserTickets(passportNumber)
+                .ToListTicketViewModels();
+
+            var paginatedTickets = userTickets.ToPaginationInfo(pageSize, page);
+            return View(paginatedTickets);
         }
-
-        var passportNumber = userManager.GetUserAsync(User).Result.PassportNumber ?? string.Empty;
-        var userTickets = ticketsRepository.GetUserTickets(passportNumber)
-            .ToListTicketViewModels();
-
-        var paginatedTickets = userTickets.ToPaginationInfo(pageSize, page);
-        return View(paginatedTickets);
+        catch (Exception ex)
+        {
+            TempData["Error"] = ex.Message;
+            // swallow
+        }
+        
+        return RedirectToAction(nameof(Index));
     }
 }

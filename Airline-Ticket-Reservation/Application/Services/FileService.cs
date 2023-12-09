@@ -9,6 +9,7 @@ public class FileService
 {
     private readonly IWebHostEnvironment host;
     private static string ImagesPath => "Images";
+    private static string RepositoriesPath => "Data";
     private string PassportPath => Path.Combine(ImagesPath, "Passport");
     
     public FileService(IWebHostEnvironment host)
@@ -25,9 +26,10 @@ public class FileService
     public string SaveFile(IFormFile file, FileCategory fileCategory)
     {
         var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-        var fileDirectory = GetFileDirectory(fileCategory);
+        var fileDirectory = GetRelativeFileDirectory(fileCategory);
+        var absoluteDirectory = GetAbsoluteDirectory(fileCategory);
         
-        if (!Directory.Exists(Path.Combine(host.WebRootPath, fileDirectory)))
+        if (!Directory.Exists(absoluteDirectory))
             Directory.CreateDirectory(Path.Combine(host.WebRootPath, fileDirectory));
         
         var relativePath = Path.Combine(fileDirectory, fileName);
@@ -40,18 +42,45 @@ public class FileService
     }
     
     /// <summary>
-    /// Gets the file directory for the specified file category.
+    /// Gets the relative file directory for the specified file category.
     /// </summary>
     /// <param name="fileCategory"></param>
     /// <returns>The directory location for the specified file category</returns>
     /// <exception cref="ArgumentException"></exception>
-    public string GetFileDirectory(FileCategory fileCategory)
+    public string GetRelativeFileDirectory(FileCategory fileCategory)
     {
         return fileCategory switch
         {
             FileCategory.Passport => PassportPath,
+            FileCategory.Repository => RepositoriesPath,
             _ => throw new ArgumentException("Invalid file category.", nameof(fileCategory))
         };
+    }
+
+    /// <summary>
+    /// Gets the absolute file directory for the specified file category
+    /// </summary>
+    /// <param name="fileCategory"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
+    public string GetAbsoluteDirectory(FileCategory fileCategory)
+    {
+        return fileCategory switch
+        {
+            FileCategory.Passport => Path.Combine(host.WebRootPath, PassportPath),
+            FileCategory.Repository => Path.Combine(host.WebRootPath, RepositoriesPath),
+            _ => throw new ArgumentException("Invalid file category.", nameof(fileCategory))
+        };
+    }
+
+    /// <summary>
+    /// Deletes a file which is located in the given location.
+    /// </summary>
+    /// <param name="path">The relative path within the application</param>
+    public void DeleteFile(string path)
+    {
+        var absolute = Path.Combine(host.WebRootPath, path);
+        File.Delete(absolute);
     }
     
     /// <summary>
@@ -63,7 +92,7 @@ public class FileService
     private static string PrependRelativePath(string relativePath)
     {
         if (!relativePath.StartsWith(Path.PathSeparator))
-           return $"{Path.PathSeparator}{relativePath}";
+           return $"{Path.DirectorySeparatorChar}{relativePath}";
         
         return relativePath;
     }

@@ -20,6 +20,8 @@ public class ListTicketViewModel
     public string CountryTo { get; set; } = null!;
     
     public SeatType? SeatType { get; set; }
+
+    public bool CanCancel => !Cancelled && DepartureDate > DateTime.UtcNow;
 }
 
 public static class ListTicketViewModelExtensions

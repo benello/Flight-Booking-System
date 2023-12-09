@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Application.ViewModels;
+namespace Application.ViewModels.Admin;
 
-public class AdminStatisticsViewModel
+public class StatisticsViewModel
 {
     [Display(Name = "Total Flights")]
     public int TotalFlights { get; set; }

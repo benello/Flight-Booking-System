@@ -3,7 +3,7 @@ using DataAccess.DataContext;
 using Domain.Models;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace DataAccess.Repositories;
+namespace DataAccess.Repositories.Db;
 
 public class FlightDbRepository
     : IFlightsRepository
@@ -44,6 +44,4 @@ public class FlightDbRepository
     public IQueryable<Flight> GetAll() => dbContext.Flights;
 
     public bool FlightExists(int flightId) => dbContext.Flights.Any(flight => flight.Id == flightId);
-
-    public IDbContextTransaction BeginTransaction() => dbContext.Database.BeginTransaction();
 }

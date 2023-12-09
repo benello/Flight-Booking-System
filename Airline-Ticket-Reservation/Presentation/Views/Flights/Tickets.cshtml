@@ -48,7 +48,7 @@
                                 </p>
                             }
                         </div>
-                        @if (!currentTicket.Cancelled)
+                        @if (currentTicket is {Cancelled: false, CanCancel: true})
                         {
                             <a class="btn btn-danger" href="\Flights\Cancel?ticketId=@currentTicket.Id" onclick='return window.confirm("Are you sure?")'>Cancel</a>
                         }

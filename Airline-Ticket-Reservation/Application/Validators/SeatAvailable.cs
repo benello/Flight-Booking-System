@@ -17,7 +17,7 @@ public class SeatAvailable
         if (value is not int seatId)
             return new ValidationResult("Id must be int");
 
-        if (service.SeatBooked(seatId))
+        if (seatId == 0 || service.SeatBooked(seatId))
             return new ValidationResult(GetErrorMessage());
         
         return ValidationResult.Success;
