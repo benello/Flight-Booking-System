@@ -1,11 +1,13 @@
 @using Application.ViewModels
+@using Airline_Ticket_Reservation.Controllers
 @model Application.Pagination.PaginationInfoWithItems<ListFlightViewModel>
 
 @{
     ViewData["Title"] = "Flights";
+    ViewData["View"] = nameof(AdminController.Flights);
 }
 
 <h1>Admin-Flights</h1>
 
 <partial name="_FlightListPartial" model="Model"/>
-<partial name="_PageNavigationPartial"model="Model"></partial>
+<partial name="_PageNavigationPartial" model="Model"></partial>

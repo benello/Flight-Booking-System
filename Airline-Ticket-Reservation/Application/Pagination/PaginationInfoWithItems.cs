@@ -1,4 +1,3 @@
-
 using Application.Contracts;
 
 namespace Application.Pagination;
