@@ -24,8 +24,18 @@ public class AdminController : Controller
     // GET
     public IActionResult Index()
     {
-        var statistics = adminService.GetStatistics();
-        return View(statistics);
+        try
+        {
+            var statistics = adminService.GetStatistics();
+            return View(statistics);
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = ex.Message;
+            // swallow
+        }
+
+        return RedirectToAction(nameof(Index), "Flights");
     }
     
     public IActionResult AddFlight()
@@ -51,13 +61,22 @@ public class AdminController : Controller
     
     public IActionResult Flights([FromServices] IFlightsRepository flightsRepository, int page = 1, int pageSize = 10)
     {
-        var flights = flightsRepository.GetAll()
-            .ToListFlightViewModels();
-        
-        var paginatedFlights = flights.ToPaginationInfo(pageSize, page);
-        ViewData["actionName"] = nameof(FlightDetails);
-        ViewData["controller"] = "admin";
-        return View(paginatedFlights);
+        try
+        {
+            var flights = flightsRepository.GetAll()
+                .ToListFlightViewModels();
+
+            var paginatedFlights = flights.ToPaginationInfo(pageSize, page);
+            ViewData["actionName"] = nameof(FlightDetails);
+            ViewData["controller"] = "admin";
+            return View(paginatedFlights);
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = ex.Message;
+        }
+
+        return RedirectToAction(nameof(Index));
     }
     
     public IActionResult FlightDetails(int flightId)

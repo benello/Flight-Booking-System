@@ -1,7 +1,7 @@
 using Domain.Models;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace DataAccess.DataContext;
 
@@ -40,5 +40,6 @@ public class AirlineDbContext
         base.OnConfiguring(optionsBuilder);
         // Explicitly use lazy loading for navigational properties in models
         optionsBuilder.UseLazyLoadingProxies();
+        optionsBuilder.ConfigureWarnings(warning => warning.Ignore(InMemoryEventId.TransactionIgnoredWarning));
     }
 }

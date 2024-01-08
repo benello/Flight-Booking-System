@@ -5,7 +5,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Encodings.Web;
+using Application.Enums;
+using Application.Services;
+using DataAccess.Contracts;
 using Domain.Models;
+using Humanizer;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -23,13 +27,17 @@ namespace Airline_Ticket_Reservation.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<User> emailStore;
         private readonly ILogger<RegisterModel> logger;
         private readonly IEmailSender emailSender;
+        private readonly IPassportRepository passportRepository;
+        private readonly FileService fileService;
 
         public RegisterModel(
             UserManager<User> userManager,
             IUserStore<User> userStore,
             SignInManager<User> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            IPassportRepository passportRepository,
+            FileService fileService)
         {
             this.userManager = userManager;
             this.userStore = userStore;
@@ -37,6 +45,8 @@ namespace Airline_Ticket_Reservation.Areas.Identity.Pages.Account
             this.signInManager = signInManager;
             this.logger = logger;
             this.emailSender = emailSender;
+            this.passportRepository = passportRepository;
+            this.fileService = fileService;
         }
 
         /// <summary>
@@ -77,6 +87,11 @@ namespace Airline_Ticket_Reservation.Areas.Identity.Pages.Account
             [DataType(DataType.Text)]
             [Display(Name = "Passport Number")]
             public string PassportNumber { get; set; }
+            
+            [Required]
+            [DataType(DataType.Upload)]
+            [Display(Name = "Passport Image")]
+            public IFormFile PassportImage { get; set; }
 
             /// <summary>
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
@@ -112,13 +127,18 @@ namespace Airline_Ticket_Reservation.Areas.Identity.Pages.Account
             if (ModelState.IsValid)
             {
                 var user = CreateUser();
-                
-                user.PassportNumber = Input.PassportNumber;
-                user.Passport = new Passport()
-                {
-                    PassportNumber = Input.PassportNumber,
-                };
 
+                user.PassportNumber = Input.PassportNumber;
+                if (!passportRepository.PassportExists(Input.PassportNumber))
+                {
+                    var imgPath = fileService.SaveFile(Input.PassportImage, FileCategory.Passport);
+                    user.Passport = new Passport()
+                    {
+                        PassportNumber = Input.PassportNumber,
+                        Image = imgPath, 
+                    };
+                }
+                
                 await userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
                 var result = await userManager.CreateAsync(user, Input.Password);

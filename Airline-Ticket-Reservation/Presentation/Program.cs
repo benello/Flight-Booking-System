@@ -1,9 +1,10 @@
 using Application.Contracts;
+using Application.Enums;
 using Application.Services;
-using DataAccess;
 using DataAccess.Contracts;
 using DataAccess.DataContext;
-using DataAccess.Repositories;
+using DataAccess.Repositories.Db;
+using DataAccess.Repositories.Json;
 using Domain.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -11,18 +12,9 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-string connection;
-if (builder.Environment.IsDevelopment())
-{
-    connection = builder.Configuration.GetConnectionString("DefaultConnection");
-}
-else
-{
-    // An environment variable is set in the Azure App Service that contains the connection string
-    connection = builder.Configuration.GetConnectionString("SQLAZURECONNSTR_DefaultConnection");
-}
 
-builder.Services.AddDbContext<AirlineDbContext>(options => options.UseSqlServer(connection));
+// An environment variable is set in the Azure App Service that contains the connection string
+string connection = builder.Configuration.GetConnectionString(builder.Environment.IsDevelopment() ? "DefaultConnection" : "SQLAZURECONNSTR_DefaultConnection");
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -31,13 +23,41 @@ builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfi
     .AddEntityFrameworkStores<AirlineDbContext>();
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddScoped<ITicketsRepository, TicketDbRepository>();
-builder.Services.AddScoped<IFlightsRepository, FlightDbRepository>();
-builder.Services.AddScoped<ISeatsRepository, SeatDbRepository>();
-builder.Services.AddScoped<IPassportRepository, PassportDbRepository>();
+builder.Services.AddScoped<FileService>();
+builder.Services.AddScoped<ITransaction, TransactionProvider>();
+
+var useJson = Environment.GetEnvironmentVariable("UseJson");
+
+if (useJson == null)
+{
+    builder.Services.AddDbContext<AirlineDbContext>(options => options.UseSqlServer(connection));
+    
+    builder.Services.AddScoped<ITicketsRepository, TicketDbRepository>();
+    builder.Services.AddScoped<IFlightsRepository, FlightDbRepository>();
+    builder.Services.AddScoped<ISeatsRepository, SeatDbRepository>();
+    builder.Services.AddScoped<IPassportRepository, PassportDbRepository>();
+}
+else
+{
+    builder.Services.AddDbContext<AirlineDbContext>(options => options.UseInMemoryDatabase("airlinedb"));
+    
+    builder.Services.AddScoped<ITicketsRepository, TicketJsonRepository>(service => 
+        new TicketJsonRepository(Path.Combine(service.GetService<IWebHostEnvironment>()!.WebRootPath, Path.Combine(service.GetService<FileService>()!.GetAbsoluteDirectory(FileCategory.Repository), "ticket.json")),
+            service.GetService<AirlineDbContext>()!));
+    builder.Services.AddScoped<IFlightsRepository, FlightJsonRepository>(service => 
+        new FlightJsonRepository(Path.Combine(service.GetService<IWebHostEnvironment>()!.WebRootPath, Path.Combine(service.GetService<FileService>()!.GetAbsoluteDirectory(FileCategory.Repository), "flight.json")),
+            service.GetService<AirlineDbContext>()!));
+    builder.Services.AddScoped<ISeatsRepository, SeatJsonRepository>(service => 
+        new SeatJsonRepository(Path.Combine(service.GetService<IWebHostEnvironment>()!.WebRootPath, Path.Combine(service.GetService<FileService>()!.GetAbsoluteDirectory(FileCategory.Repository), "seat.json")), 
+            service.GetService<AirlineDbContext>()!));
+    builder.Services.AddScoped<IPassportRepository, PassportJsonRepository>(service => 
+        new PassportJsonRepository(Path.Combine(service.GetService<IWebHostEnvironment>()!.WebRootPath, Path.Combine(service.GetService<FileService>()!.GetAbsoluteDirectory(FileCategory.Repository), "passport.json")),
+            service.GetService<AirlineDbContext>()!));
+}
+
 builder.Services.AddScoped<IAirlineService, AirlineService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
-builder.Services.AddScoped<FileService>();
+
 
 var app = builder.Build();
 

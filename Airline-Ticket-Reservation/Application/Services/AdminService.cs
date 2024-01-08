@@ -12,18 +12,19 @@ public class AdminService
 {
     private readonly IFlightsRepository flightsRepository;
     private readonly ISeatsRepository seatsRepository;
-    private readonly ITicketsRepository ticketsRepository;
+    private readonly ITicketsRepository ticketsRepository;    private readonly ITransaction transactionProvider;
 
-    public AdminService(IFlightsRepository flightsRepo, ISeatsRepository seatsRepo, ITicketsRepository ticketsRepo)
+    public AdminService(IFlightsRepository flightsRepo, ISeatsRepository seatsRepo, ITicketsRepository ticketsRepo, ITransaction transactionProvider)
     {
         flightsRepository = flightsRepo;
         seatsRepository = seatsRepo;
         ticketsRepository = ticketsRepo;
+        this.transactionProvider = transactionProvider;
     }
 
     public void AddFlightWithSeats(Flight flight)
     {
-        using var uow = flightsRepository.BeginTransaction();
+        using var uow = transactionProvider.BeginTransaction();
 
         try
         {

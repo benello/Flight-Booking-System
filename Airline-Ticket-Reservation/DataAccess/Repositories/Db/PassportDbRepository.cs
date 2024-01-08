@@ -3,7 +3,7 @@ using DataAccess.DataContext;
 using Domain.Models;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace DataAccess.Repositories;
+namespace DataAccess.Repositories.Db;
 
 public class PassportDbRepository
     : IPassportRepository
@@ -38,12 +38,11 @@ public class PassportDbRepository
         dbContext.Passports.Remove(entity);
         return dbContext.SaveChanges() > 0;
     }
-
-    public Passport? Get(int id) => dbContext.Passports.Find(id);
+    
+    // Overlooked the fact that the key for passport is a string not an int. This is a temporary fix.
+    public Passport? Get(string id) => dbContext.Passports.Find(id);
 
     public IQueryable<Passport> GetAll() => dbContext.Passports;
 
     public bool PassportExists(string passportNumber) => dbContext.Passports.Any(ticket => ticket.PassportNumber == passportNumber);
-    
-    public IDbContextTransaction BeginTransaction() => dbContext.Database.BeginTransaction();
 }

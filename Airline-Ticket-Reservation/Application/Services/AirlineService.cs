@@ -29,15 +29,23 @@ public class AirlineService
     {
         if (!flightsRepository.FlightExists(ticket.FlightId))
             throw new InvalidOperationException("Ticket cannot be booked as flight does not exist");
-        
-        if (!passportRepository.PassportExists(ticket.PassportNumber))
+
+        var passport = passportRepository.Get(ticket.PassportNumber);
+        if (passport is null)
         {
-            var passport = new Passport()
+            passport = new Passport()
             {
                 PassportNumber = ticket.PassportNumber,
                 Image = fileService.SaveFile(passportImage, FileCategory.Passport),
             };
             passportRepository.Add(passport);   
+        }
+        else if (passport.Image is not null)
+        {
+            fileService.DeleteFile(passport.Image);
+            passport.Image = fileService.SaveFile(passportImage, FileCategory.Passport);
+
+            passportRepository.Update(passport);
         }
             
         ticketsRepository.Add(ticket);

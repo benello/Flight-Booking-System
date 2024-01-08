@@ -3,7 +3,7 @@ using DataAccess.DataContext;
 using Domain.Models;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace DataAccess.Repositories;
+namespace DataAccess.Repositories.Db;
 
 public class TicketDbRepository
     : ITicketsRepository
@@ -48,6 +48,4 @@ public class TicketDbRepository
     public IQueryable<Ticket> GetFlightTickets(int flightId) => dbContext.Tickets.Where(ticket => ticket.FlightId == flightId);
 
     public IQueryable<Ticket> GetUserTickets(string passportNumber) => dbContext.Tickets.Where(ticket => ticket.PassportNumber == passportNumber);
-    
-    public IDbContextTransaction BeginTransaction() => dbContext.Database.BeginTransaction();
 }
