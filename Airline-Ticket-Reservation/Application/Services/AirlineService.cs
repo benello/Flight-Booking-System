@@ -40,11 +40,12 @@ public class AirlineService
             };
             passportRepository.Add(passport);   
         }
-        else if (passport.Image is not null)
+        else
         {
-            fileService.DeleteFile(passport.Image);
+            if (passport.Image is not null)
+                fileService.DeleteFile(passport.Image);
+            
             passport.Image = fileService.SaveFile(passportImage, FileCategory.Passport);
-
             passportRepository.Update(passport);
         }
             

@@ -79,7 +79,7 @@ public class FileService
     /// <param name="path">The relative path within the application</param>
     public void DeleteFile(string path)
     {
-        var absolute = Path.Combine(host.WebRootPath, path);
+        var absolute = Path.Combine(host.WebRootPath, FormatRelativePath(path));
         File.Delete(absolute);
     }
     
@@ -91,9 +91,17 @@ public class FileService
     /// <returns>The relative path prefixed with a /</returns>
     private static string PrependRelativePath(string relativePath)
     {
-        if (!relativePath.StartsWith(Path.PathSeparator))
+        if (!relativePath.StartsWith(Path.DirectorySeparatorChar))
            return $"{Path.DirectorySeparatorChar}{relativePath}";
         
         return relativePath;
+    }
+
+    private static string FormatRelativePath(string path)
+    {
+        if (path.StartsWith(Path.DirectorySeparatorChar))
+            return path.Remove(0, 1);
+
+        return path;
     }
 }
