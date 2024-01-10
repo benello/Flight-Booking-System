@@ -3,6 +3,7 @@ using System.Runtime.Serialization.Json;
 using Domain.Models;
 using DataAccess.Contracts;
 using DataAccess.DataContext;
+using Microsoft.EntityFrameworkCore;
 
 namespace DataAccess.Repositories.Json;
 
@@ -16,57 +17,45 @@ public class SeatJsonRepository
     {
         this.filePath = filePath;
         this.dbContext = dbContext;
+        this.dbContext.SavedChanges += SaveChanges;
         
         if (File.Exists(this.filePath))
         {
             using var fs = new FileStream(filePath, FileMode.Open);
-            try
+            var seats = (Seat[]) (new DataContractJsonSerializer(typeof(Seat[]), new DataContractJsonSerializerSettings{EmitTypeInformation = EmitTypeInformation.Never}).ReadObject(fs) ?? Array.Empty<Seat>());
+            foreach (var seat in seats)
             {
-                var seats = (Seat[]) (new DataContractJsonSerializer(typeof(Seat[]), new DataContractJsonSerializerSettings{EmitTypeInformation = EmitTypeInformation.Never}).ReadObject(fs) ?? Array.Empty<Seat>());
-                foreach (var seat in seats)
-                {
-                    // This is a simple approach to insert or ignore records
-                    if (!this.dbContext.Seats.Any(s => s.Id == seat.Id))
-                        this.dbContext.Seats.Add(seat);
-                }
-                
-                this.dbContext.SaveChanges();
+                // This is a simple approach to insert or ignore records
+                if (!this.dbContext.Seats.Any(s => s.Id == seat.Id))
+                    this.dbContext.Seats.Add(seat);
             }
-            catch
-            {
-                // swallow (Not the best solution however this is a simple approach to insert or ignore records)
-            }
+            
+            this.dbContext.SaveChanges();
         }
     }
 
     public bool Add(Seat entity)
     {
         dbContext.Seats.Add(entity);
-        dbContext.SaveChanges();
-        return SaveChanges();
+        return dbContext.SaveChanges() > 0;
     }
 
     public bool AddRange(IEnumerable<Seat> entities)
     {
         dbContext.Seats.AddRange(entities);
-        dbContext.SaveChanges();
-        return SaveChanges();
+        return dbContext.SaveChanges() > 0;
     }
 
     public bool Update(Seat entity)
     {
         dbContext.Seats.Update(entity);
-        dbContext.SaveChanges();
-        return SaveChanges();
+        return dbContext.SaveChanges() > 0;
     }
 
     public bool Delete(Seat entity)
     {
         dbContext.Seats.Remove(entity);
-        dbContext.SaveChanges();
-        SaveChanges();
-
-        return true;
+        return dbContext.SaveChanges() > 0;
     }
 
     public Seat? Get(int id) => dbContext.Seats.FirstOrDefault(seat => seat.Id == id);
@@ -79,10 +68,9 @@ public class SeatJsonRepository
 
     public bool SeatBelongsToFlight(int seatId, int flightId) => dbContext.Seats.Any(seat => seat.Id == seatId && seat.FlightId == flightId);
     
-    private bool SaveChanges()
+    private void SaveChanges(object? sender, SavedChangesEventArgs? args)
     {
         using var fs = new FileStream(filePath, FileMode.OpenOrCreate);
         new DataContractJsonSerializer(typeof(Seat[]), new DataContractJsonSerializerSettings{EmitTypeInformation = EmitTypeInformation.Never}).WriteObject(fs, dbContext.Seats.ToArray());
-        return true;
     }
 }

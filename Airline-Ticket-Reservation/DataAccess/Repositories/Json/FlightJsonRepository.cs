@@ -3,6 +3,7 @@ using System.Runtime.Serialization.Json;
 using Domain.Models;
 using DataAccess.Contracts;
 using DataAccess.DataContext;
+using Microsoft.EntityFrameworkCore;
 
 namespace DataAccess.Repositories.Json;
 
@@ -16,7 +17,7 @@ public class FlightJsonRepository
     {
         this.filePath = filePath;
         this.dbContext = dbContext;
-        this.dbContext.SavedChanges += (sender, args) => SaveChanges();
+        this.dbContext.SavedChanges += SaveChanges;
         
         if (File.Exists(this.filePath))
         {
@@ -28,8 +29,8 @@ public class FlightJsonRepository
                 if (!this.dbContext.Flights.Any(f => f.Id == flight.Id))
                     this.dbContext.Flights.Add(flight);
             }
-            this.dbContext.SaveChanges();
             
+            this.dbContext.SaveChanges();
         }
     }
 
@@ -63,7 +64,7 @@ public class FlightJsonRepository
 
     public bool FlightExists(int flightId) => dbContext.Flights.Any(flight => flight.Id == flightId);
 
-    private void SaveChanges()
+    private void SaveChanges(object? sender, SavedChangesEventArgs? args)
     {
         using var fs = new FileStream(filePath, FileMode.OpenOrCreate);
         new DataContractJsonSerializer(typeof(Flight[]), new DataContractJsonSerializerSettings{EmitTypeInformation = EmitTypeInformation.Never}).WriteObject(fs, dbContext.Flights.ToArray());
